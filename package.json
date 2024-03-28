@@ -12,10 +12,13 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@simonwep/pickr": "^1.9.0",
 		"@types/node": "^16.11.6",
+		"@types/sortablejs": "^1.15.8",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
 		"obsidian": "latest",
+		"sortablejs": "^1.15.2",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
 	}

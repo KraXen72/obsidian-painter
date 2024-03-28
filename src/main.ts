@@ -1,134 +1,220 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { Editor, Menu, Plugin, PluginManifest } from "obsidian";
+import { HighlightrSettingTab } from "./settings/settings-tabs";
+import { HighlightrSettings } from "./settings/settings-data";
+import DEFAULT_SETTINGS from "./settings/settings-data";
+import contextMenu from "./context-menu";
+import highlighterMenu from "./menu";
+import addIcons from "./custom-icons";
+import { createHighlighterIcons } from "./custom-icons";
 
-// Remember to rename these classes and interfaces!
+import { createStyles } from "src/utils/create-style";
+import { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
+import { wait } from "./utils/debounce";
 
-interface MyPluginSettings {
-	mySetting: string;
-}
+export default class HighlightrPlugin extends Plugin {
+  app: EnhancedApp;
+  editor: EnhancedEditor;
+  manifest: PluginManifest;
+  settings: HighlightrSettings;
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+  async onload() {
+    console.log(`Highlightr v${this.manifest.version} loaded`);
+    // addIcons();
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+    await this.loadSettings();
 
-	async onload() {
-		await this.loadSettings();
+    this.app.workspace.onLayoutReady(() => {
+      this.reloadStyles(this.settings);
+      createHighlighterIcons(this.settings, this);
+    });
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+    this.registerEvent(
+      this.app.workspace.on("editor-menu", this.handleHighlighterInContextMenu)
+    );
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+    this.addSettingTab(new HighlightrSettingTab(this.app, this));
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+    this.addCommand({
+      id: "highlighter-plugin-menu",
+      name: "Open Highlightr",
+      icon: "highlightr-pen",
+      editorCallback: (editor: EnhancedEditor) => {
+        !document.querySelector(".menu.highlighterContainer")
+          ? highlighterMenu(this.app, this.settings, editor)
+          : true;
+      },
+    });
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			}
-		});
+    addEventListener("Highlightr-NewCommand", () => {
+      this.reloadStyles(this.settings);
+      this.generateCommands(this.editor);
+      createHighlighterIcons(this.settings, this);
+    });
+    this.generateCommands(this.editor);
+    this.refresh();
+  }
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+  reloadStyles(settings: HighlightrSettings) {
+    let currentSheet = document.querySelector("style#highlightr-styles");
+    if (currentSheet) {
+      currentSheet.remove();
+      createStyles(settings);
+    } else {
+      createStyles(settings);
+    }
+  }
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
+  eraseHighlight = (editor: Editor) => {
+    const currentStr = editor.getSelection();
+    const newStr = currentStr
+      .replace(/\<mark style.*?[^\>]\>/g, "")
+      .replace(/\<mark class.*?[^\>]\>/g, "")
+      .replace(/\<\/mark>/g, "");
+    editor.replaceSelection(newStr);
+    editor.focus();
+  };
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-	}
+  generateCommands(editor: Editor) {
+    this.settings.highlighterOrder.forEach((highlighterKey: string) => {
+      const applyCommand = (command: CommandPlot, editor: Editor) => {
+        const selectedText = editor.getSelection();
+        const curserStart = editor.getCursor("from");
+        const curserEnd = editor.getCursor("to");
+        const prefix = command.prefix;
+        const suffix = command.suffix || prefix;
+        const setCursor = (mode: number) => {
+          editor.setCursor(
+            curserStart.line + command.line * mode,
+            curserEnd.ch + cursorPos * mode
+          );
+        };
+        const cursorPos =
+          selectedText.length > 0
+            ? prefix.length + suffix.length + 1
+            : prefix.length;
+        const preStart = {
+          line: curserStart.line - command.line,
+          ch: curserStart.ch - prefix.length,
+        };
+        const pre = editor.getRange(preStart, curserStart);
 
-	onunload() {
+        const sufEnd = {
+          line: curserStart.line + command.line,
+          ch: curserEnd.ch + suffix.length,
+        };
 
-	}
+        const suf = editor.getRange(curserEnd, sufEnd);
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+        const preLast = pre.slice(-1);
+        const prefixLast = prefix.trimStart().slice(-1);
+        const sufFirst = suf[0];
 
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
-}
+        if (suf === suffix.trimEnd()) {
+          if (preLast === prefixLast && selectedText) {
+            editor.replaceRange(selectedText, preStart, sufEnd);
+            const changeCursor = (mode: number) => {
+              editor.setCursor(
+                curserStart.line + command.line * mode,
+                curserEnd.ch + (cursorPos * mode + 8)
+              );
+            };
+            return changeCursor(-1);
+          }
+        }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+        editor.replaceSelection(`${prefix}${selectedText}${suffix}`);
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
+        return setCursor(1);
+      };
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
+      type CommandPlot = {
+        char: number;
+        line: number;
+        prefix: string;
+        suffix: string;
+      };
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+      type commandsPlot = {
+        [key: string]: CommandPlot;
+      };
 
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
+      const commandsMap: commandsPlot = {
+        highlight: {
+          char: 34,
+          line: 0,
+          prefix:
+            this.settings.highlighterMethods === "css-classes"
+              ? `<mark class="hltr-${highlighterKey.toLowerCase()}">`
+              : `<mark style="background: ${this.settings.highlighters[highlighterKey]};">`,
+          suffix: "</mark>",
+        },
+      };
 
-	display(): void {
-		const {containerEl} = this;
+      Object.keys(commandsMap).forEach((type) => {
+        let highlighterpen = `highlightr-pen-${highlighterKey}`.toLowerCase();
+        this.addCommand({
+          id: highlighterKey,
+          name: highlighterKey,
+          icon: highlighterpen,
+          editorCallback: async (editor: Editor) => {
+            applyCommand(commandsMap[type], editor);
+            await wait(10);
+            editor.focus();
+          },
+        });
+      });
 
-		containerEl.empty();
+      this.addCommand({
+        id: "unhighlight",
+        name: "Remove highlight",
+        icon: "highlightr-eraser",
+        editorCallback: async (editor: Editor) => {
+          this.eraseHighlight(editor);
+          editor.focus();
+        },
+      });
+    });
+  }
 
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-	}
+  refresh = () => {
+    this.updateStyle();
+  };
+
+  updateStyle = () => {
+    document.body.classList.toggle(
+      "highlightr-lowlight",
+      this.settings.highlighterStyle === "lowlight"
+    );
+    document.body.classList.toggle(
+      "highlightr-floating",
+      this.settings.highlighterStyle === "floating"
+    );
+    document.body.classList.toggle(
+      "highlightr-rounded",
+      this.settings.highlighterStyle === "rounded"
+    );
+    document.body.classList.toggle(
+      "highlightr-realistic",
+      this.settings.highlighterStyle === "realistic"
+    );
+  };
+
+  onunload() {
+    console.log("Highlightr unloaded");
+  }
+
+  handleHighlighterInContextMenu = (
+    menu: Menu,
+    editor: EnhancedEditor
+  ): void => {
+    contextMenu(this.app, menu, editor, this, this.settings);
+  };
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
 }
