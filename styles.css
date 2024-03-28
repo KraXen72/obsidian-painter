@@ -361,7 +361,8 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button:is(
 .painter-plugin-item-color {
 	display: grid;
 	grid-gap: 8px;
-	grid-template-columns: 0.5fr 7fr;
+	grid-template-columns: min-content 7fr;
+	column-gap: 1rem;
 	align-items: center;
 	border-top: 1px solid var(--background-modifier-border);
 }

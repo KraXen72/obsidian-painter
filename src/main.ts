@@ -14,9 +14,10 @@ export default class HighlightrPlugin extends Plugin {
 	editor: EnhancedEditor;
 	manifest: PluginManifest;
 	settings: HighlightrSettings;
+	parser: DOMParser
 
 	async onload() {
-		console.log(`Highlightr v${this.manifest.version} loaded`);
+		console.log(`Painter v${this.manifest.version} loaded`);
 
 		await this.loadSettings();
 
@@ -49,6 +50,7 @@ export default class HighlightrPlugin extends Plugin {
 		});
 		this.generateCommands(this.editor);
 		this.refresh();
+		this.parser = new DOMParser();
 	}
 
 	reloadStyles(settings: HighlightrSettings) {
@@ -62,13 +64,20 @@ export default class HighlightrPlugin extends Plugin {
 	}
 
 	eraseHighlight = (editor: Editor) => {
+		// to remove any mark elements, we use DOMParser to create a sandbox
+		// then, remove any mark elements & read the result to set it back
 		const currentStr = editor.getSelection();
-		const newStr = currentStr
-			.replace(/<mark style.*?[^>]>/g, "")
-			.replace(/<mark class.*?[^>]>/g, "")
-			.replace(/<\/mark>/g, "");
-		editor.replaceSelection(newStr);
+		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
+		sandbox.querySelectorAll('mark').forEach(m => {
+			m.replaceWith(document.createTextNode(m.innerHTML))
+		})
+		editor.replaceSelection(sandbox.body.innerHTML); // this is only *reading* the innerHTML, not setting it
 		editor.focus();
+
+		// const newStr = currentStr
+		// 	.replace(/<mark style.*?[^>]>/g, "")
+		// 	.replace(/<mark class.*?[^>]>/g, "")
+		// 	.replace(/<\/mark>/g, "");
 	};
 
 	generateCommands(editor: Editor) {
@@ -185,7 +194,7 @@ export default class HighlightrPlugin extends Plugin {
 	};
 
 	onunload() {
-		console.log("Highlightr unloaded");
+		console.log("Painter unloaded");
 	}
 
 	handleHighlighterInContextMenu = (

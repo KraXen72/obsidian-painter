@@ -14,7 +14,6 @@ export function createStyles(settings: HighlightrSettings) {
 
 	let header = document.getElementsByTagName("HEAD")[0];
 	header.appendChild(styleSheet);
-	console.log(settings.highlighterStyle)
 
 	Object.keys(settings.highlighters).forEach((highlighter) => {
 		let colorLowercase = highlighter.toLowerCase();

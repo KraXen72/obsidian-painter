@@ -24,8 +24,6 @@ const highlighterMenu = (
 	menu.dom.addClass("painter-plugin-menu-container");
 	if (settings.menuMode === 'minimal') menu.dom.addClass('minimal'); 
 
-	console.log(menu)
-
 	settings.orderedColors.forEach((color) => {
 		const lowerCaseColor = color.toLowerCase()
 		menu.addItem(item => {
@@ -55,6 +53,12 @@ const highlighterMenu = (
 	menu.showAtPosition({
 		x: coords.right + 25,
 		y: coords.top + 20,
+	});
+	menu.dom.querySelectorAll('.menu-item').forEach(mi => {
+		const ic: HTMLElement | null = mi.querySelector('.menu-item-icon')
+		const ti: HTMLElement | null = mi.querySelector('.menu-item-title')
+		if (ic === null || ti === null) return;
+		ic.title = (ti?.textContent ?? '')
 	});
 };
 
