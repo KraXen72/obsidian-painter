@@ -7,7 +7,9 @@ export interface Coords {
   bottom: number;
 }
 
-export type EnhancedMenu = Menu & { dom: HTMLElement };
+export interface EnhancedMenu extends Menu {
+	dom: HTMLElement;
+}
 
 export type EnhancedApp = App & {
   commands: { executeCommandById: Function };

@@ -111,7 +111,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
         let input = valueInput.inputEl;
         let currentColor = valueInput.inputEl.value || null;
 
-        const colorMap = this.plugin.settings.highlighterOrder.map(
+        const colorMap = this.plugin.settings.orderedColors.map(
           (highlightKey) => this.plugin.settings.highlighters[highlightKey]
         );
 
@@ -195,8 +195,8 @@ export class HighlightrSettingTab extends PluginSettingTab {
             let value = valueInput.inputEl.value;
 
             if (color && value) {
-              if (!this.plugin.settings.highlighterOrder.includes(color)) {
-                this.plugin.settings.highlighterOrder.push(color);
+              if (!this.plugin.settings.orderedColors.includes(color)) {
+                this.plugin.settings.orderedColors.push(color);
                 this.plugin.settings.highlighters[color] = value;
                 setTimeout(() => {
                   dispatchEvent(new Event("Highlightr-NewCommand"));
@@ -230,15 +230,15 @@ export class HighlightrSettingTab extends PluginSettingTab {
       fallbackClass: "highlighter-sortable-fallback",
       easing: "cubic-bezier(1, 0, 0, 1)",
       onSort: (command: { oldIndex: number; newIndex: number }) => {
-        const arrayResult = this.plugin.settings.highlighterOrder;
+        const arrayResult = this.plugin.settings.orderedColors;
         const [removed] = arrayResult.splice(command.oldIndex, 1);
         arrayResult.splice(command.newIndex, 0, removed);
-        this.plugin.settings.highlighterOrder = arrayResult;
+        this.plugin.settings.orderedColors = arrayResult;
         this.plugin.saveSettings();
       },
     });
 
-    this.plugin.settings.highlighterOrder.forEach((highlighter) => {
+    this.plugin.settings.orderedColors.forEach((highlighter) => {
       const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill=${this.plugin.settings.highlighters[highlighter]} stroke=${this.plugin.settings.highlighters[highlighter]} stroke-width="0" stroke-linecap="round" stroke-linejoin="round"><path d="M20.707 5.826l-3.535-3.533a.999.999 0 0 0-1.408-.006L7.096 10.82a1.01 1.01 0 0 0-.273.488l-1.024 4.437L4 18h2.828l1.142-1.129l3.588-.828c.18-.042.345-.133.477-.262l8.667-8.535a1 1 0 0 0 .005-1.42zm-9.369 7.833l-2.121-2.12l7.243-7.131l2.12 2.12l-7.242 7.131zM4 20h16v2H4z"/></svg>`;
       const settingItem = highlightersContainer.createEl("div");
       settingItem.addClass("highlighter-item-draggable");
@@ -262,7 +262,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
                 `highlightr-plugin:${highlighter}`
               );
               delete this.plugin.settings.highlighters[highlighter];
-              this.plugin.settings.highlighterOrder.remove(highlighter);
+              this.plugin.settings.orderedColors.remove(highlighter);
               setTimeout(() => {
                 dispatchEvent(new Event("Highlightr-NewCommand"));
               }, 100);

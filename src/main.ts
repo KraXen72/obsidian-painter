@@ -19,7 +19,7 @@ export default class HighlightrPlugin extends Plugin {
 
   async onload() {
     console.log(`Highlightr v${this.manifest.version} loaded`);
-    // addIcons();
+    addIcons();
 
     await this.loadSettings();
 
@@ -75,7 +75,7 @@ export default class HighlightrPlugin extends Plugin {
   };
 
   generateCommands(editor: Editor) {
-    this.settings.highlighterOrder.forEach((highlighterKey: string) => {
+    this.settings.orderedColors.forEach((highlighterKey: string) => {
       const applyCommand = (command: CommandPlot, editor: Editor) => {
         const selectedText = editor.getSelection();
         const curserStart = editor.getCursor("from");

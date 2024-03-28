@@ -1,20 +1,10 @@
-export function debounce(func: any, wait?: number, immediate?: boolean) {
-  let timeout: number;
-
-  return function executedFunction() {
-    let context = this;
-    let args = arguments;
-
-    let later = function () {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    let callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = +setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
+export function debounce(fn: Function, ms = 300) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return function (this: any, ...args: any[]) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
-}
+};
 
 export async function wait(delay: number) {
   return new Promise((resolve) => setTimeout(resolve, delay));

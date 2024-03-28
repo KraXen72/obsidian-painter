@@ -16,20 +16,14 @@ const highlighterMenu = (
     const cursor = editor.getCursor("from");
     let coords: Coords;
 
-    const menu = new Menu() as unknown as EnhancedMenu;
+    const menu = new Menu() as EnhancedMenu;
+		menu.dom.addClass("highlighterContainer");
 
-    // menu.setUseNativeMenu(false);
-
-    const menuDom = menu.dom;
-    menuDom.addClass("highlighterContainer");
-
-    settings.highlighterOrder.forEach((highlighter) => {
-      menu.addItem((highlighterItem) => {
-        highlighterItem.setTitle(highlighter);
-        highlighterItem.setIcon(`highlightr-pen-${highlighter}`.toLowerCase());
-        highlighterItem.onClick(() => {
-          app.commands.executeCommandById(`highlightr-plugin:${highlighter}`);
-        });
+    settings.orderedColors.forEach((color) => {
+      menu.addItem((item) => {
+        item.setTitle(color);
+        item.setIcon(`highlightr-pen-${color}`.toLowerCase());
+        item.onClick(() => app.commands.executeCommandById(`highlightr-plugin:${color}`));
       });
     });
 

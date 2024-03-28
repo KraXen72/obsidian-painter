@@ -17,7 +17,7 @@ export function createHighlighterIcons(
 ) {
   const highlighterIcons: Record<string, string> = {};
 
-  for (const key of plugin.settings.highlighterOrder) {
+  for (const key of plugin.settings.orderedColors) {
     let highlighterpen = `highlightr-pen-${key}`.toLowerCase();
     highlighterIcons[
       highlighterpen
