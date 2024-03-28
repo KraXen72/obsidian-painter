@@ -20,10 +20,11 @@ const highlighterMenu = (
 		menu.dom.addClass("painter-plugin-menu-container");
 
 		settings.orderedColors.forEach((color) => {
+			const lowerCaseColor = color.toLowerCase()
 			menu.addItem((item) => {
 				item.setTitle(color);
-				item.setIcon(`paintbrush-2-${color}`.toLowerCase());
-				item.onClick(() => app.commands.executeCommandById(`highlightr-plugin:${color}`));
+				item.setIcon(`painter-icon-${lowerCaseColor}`);
+				item.onClick(() => app.commands.executeCommandById(`obsidian-painter:paint-${lowerCaseColor}`));
 			});
 		});
 

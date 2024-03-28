@@ -33,8 +33,8 @@ export default class HighlightrPlugin extends Plugin {
 		this.addSettingTab(new HighlightrSettingTab(this.app, this));
 
 		this.addCommand({
-			id: "highlighter-plugin-menu",
-			name: "Open Highlightr",
+			id: "open-menu",
+			name: "Open Painter Menu",
 			icon: "paintbrush-2",
 			editorCallback: (editor: EnhancedEditor) => {
 				!document.querySelector(".menu.painter-plugin-menu-container")
@@ -43,7 +43,7 @@ export default class HighlightrPlugin extends Plugin {
 			},
 		});
 
-		addEventListener("Highlightr-NewCommand", () => {
+		addEventListener("painter:refreshstyles", () => {
 			this.reloadStyles(this.settings);
 			this.generateCommands(this.editor);
 			createHighlighterIcons(this.settings, this);
@@ -65,15 +65,16 @@ export default class HighlightrPlugin extends Plugin {
 	eraseHighlight = (editor: Editor) => {
 		const currentStr = editor.getSelection();
 		const newStr = currentStr
-			.replace(/\<mark style.*?[^\>]\>/g, "")
-			.replace(/\<mark class.*?[^\>]\>/g, "")
-			.replace(/\<\/mark>/g, "");
+			.replace(/<mark style.*?[^>]>/g, "")
+			.replace(/<mark class.*?[^>]>/g, "")
+			.replace(/<\/mark>/g, "");
 		editor.replaceSelection(newStr);
 		editor.focus();
 	};
 
 	generateCommands(editor: Editor) {
 		this.settings.orderedColors.forEach((highlighterKey: string) => {
+			const lowerCaseColor = highlighterKey.toLowerCase()
 			const applyCommand = (command: CommandPlot, editor: Editor) => {
 				const selectedText = editor.getSelection();
 				const curserStart = editor.getCursor("from");
@@ -149,11 +150,10 @@ export default class HighlightrPlugin extends Plugin {
 			};
 
 			Object.keys(commandsMap).forEach((type) => {
-				let highlighterpen = `paintbrush-2-${highlighterKey}`.toLowerCase();
 				this.addCommand({
-					id: highlighterKey,
+					id: `paint-${lowerCaseColor}`,
 					name: highlighterKey,
-					icon: highlighterpen,
+					icon: `painter-icon-${lowerCaseColor}`,
 					editorCallback: async (editor: Editor) => {
 						applyCommand(commandsMap[type], editor);
 						await wait(10);
@@ -163,7 +163,7 @@ export default class HighlightrPlugin extends Plugin {
 			});
 
 			this.addCommand({
-				id: "unhighlight",
+				id: "remove-highlight",
 				name: "Remove highlight",
 				icon: "eraser",
 				editorCallback: async (editor: Editor) => {

@@ -45,7 +45,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 					.onChange((highlightrMethod) => {
 						this.plugin.settings.highlighterMethods = highlightrMethod;
 						setTimeout(() => {
-							dispatchEvent(new Event("Highlightr-NewCommand"));
+							dispatchEvent(new Event("painter:refreshstyles"));
 						}, 100);
 						this.plugin.saveSettings();
 						this.plugin.saveData(this.plugin.settings);
@@ -172,7 +172,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 								this.plugin.settings.orderedColors.push(color);
 								this.plugin.settings.highlighters[color] = value;
 								setTimeout(() => {
-									dispatchEvent(new Event("Highlightr-NewCommand"));
+									dispatchEvent(new Event("painter:refreshstyles"));
 								}, 100);
 								await this.plugin.saveSettings();
 								this.display();
@@ -250,7 +250,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 							delete this.plugin.settings.highlighters[highlighter];
 							this.plugin.settings.orderedColors.remove(highlighter);
 							setTimeout(() => {
-								dispatchEvent(new Event("Highlightr-NewCommand"));
+								dispatchEvent(new Event("painter:refreshstyles"));
 							}, 100);
 							await this.plugin.saveSettings();
 							this.display();
