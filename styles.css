@@ -207,62 +207,50 @@ details[open] summary.highlight-summary::before {
 
 /*highlightr component*/
 
-@keyframes fade {
-	0% {
-		opacity: 0;
-	}
-	20% {
-		opacity: 0.9;
-	}
-	40% {
-		opacity: 0.95;
-	}
-	100% {
-		opacity: 1;
-	}
-}
 
-.menu.painter-plugin-menu-container {
-	min-width: 140px;
-	max-width: 225px;
-	max-height: 180px;
-	padding-left: 0em;
-	padding: 0;
-	margin: 0 auto;
-	border-radius: 6px;
-	font-size: 14px;
-	overflow-y: auto;
+/* highlightr compact menu */
+
+.menu.painter-plugin-menu-container.minimal {
+	display: inline-flex;
+	width: max-content;
+	padding: 3px 3px;
 	overflow-x: hidden;
-	position: fixed;
-	animation: fade 300ms ease-in-out;
-	background-color: var(--background-primary);
-	box-shadow: 0px 3px 25px rgba(31, 38, 135, 0.1);
-	border: 1px solid var(--background-modifier-border);
 }
+.menu.painter-plugin-menu-container.minimal .menu-item {
+	padding: 0;
+	margin: 0;
+	border-bottom: transparent;
+	border-radius: 5px;
 
-.menu.painter-plugin-menu-container .menu-item .menu-item-icon {
-	display: inline-block;
-	width: 25px;
-	position: relative;
-	top: 2px;
+	justify-content: center;
+	align-items: center;
+
+	width: 1.75rem;
+	height: 1.75rem;
+
 }
-
-.menu.painter-plugin-menu-container .menu-item {
-	display: flex;
-	padding: 2px 14px 3px 14px;
-	align-items: unset;
-	margin: auto;
-	cursor: pointer;
-	font-size: 14px;
-	height: 32px;
-	line-height: 31px;
-	white-space: nowrap;
-	border-radius: 0;
-	border-bottom: 1px solid var(--background-modifier-border);
+.menu.painter-plugin-menu-container.minimal .menu-item .menu-item-title {
+	display: none;
 }
+.menu.painter-plugin-menu-container.minimal .menu-item .menu-item-icon {
+	height: min-content;
+	width: min-content;
+}
+.menu.painter-plugin-menu-container.minimal .menu-separator {
+	padding: 0;
+	margin: 0;
+	background-image: linear-gradient(
+		to right,
+		transparent 0 3px,
+		var(--background-modifier-border) 3px 4px,
+		transparent 4px 7px
+	);
 
-.menu.painter-plugin-menu-container .menu-item:last-of-type {
-	border-bottom: none;
+	display: block;
+	margin: 0;
+	height: 1.75rem;
+	width: 7px;
+	border: none;
 }
 
 /*----------------------------------------------------------------
@@ -354,12 +342,16 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button.painter-pl
 	background-color: var(--interactive-accent);
 }
 
-.modal.mod-settings button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button.painter-plugin-settings-button-delete,
-button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button.painter-plugin-settings-button-delete {
+button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button:is(
+	.painter-plugin-settings-button-delete, 
+	.painter-plugin-settings-button-edit
+) {
 	background-color: #5e5f61;
+	&:hover {
+		background-color: #757679;
+	}
 }
 
-/**/
 .painter-plugin-setting-icon {
 	display: flex;
 	height: 24px;
@@ -429,33 +421,6 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button.painter-pl
 .cm-s-obsidian span.cm-highlight {
 	background: #a5756233;
 	color: var(--text-normal);
-}
-
-/* highlightr compact menu */
-.menu.painter-plugin-menu-container {
-	display: flex !important;
-	width: max-content !important;
-	padding: .2rem .5rem !important;
-	overflow-x: none !important;
-}
-.menu.painter-plugin-menu-container .menu-item {
-	padding: 0;
-	margin: 0;
-	border-bottom: transparent;
-	border-radius: 5px;
-
-	justify-content: center;
-	align-items: center;
-
-	aspect-ratio: 1/1;
-
-}
-.menu.painter-plugin-menu-container .menu-item .menu-item-title {
-	display: none;
-}
-.menu.painter-plugin-menu-container .menu-item .menu-item-icon {
-	height: min-content;
-	width: min-content;
 }
 
 /* consistent icon stroke width with others */

@@ -11,14 +11,14 @@ export interface EnhancedMenu extends Menu {
 	dom: HTMLElement;
 }
 
-export type EnhancedApp = App & {
-	commands: { executeCommandById: Function };
-};
+export interface EnhancedApp extends App {
+	commands: { executeCommandById: Function }
+}
 
-export type EnhancedEditor = Editor & {
+export interface EnhancedEditor extends Editor {
+	cm: CodeMirror.Editor & { coordsAtPos: Function };
 	cursorCoords: Function;
 	coordsAtPos: Function;
-	cm: CodeMirror.Editor & { coordsAtPos: Function };
-	hasFocus: Function;
-	getSelection: Function;
-};
+	hasFocus: () => boolean;
+	getSelection: () => string;
+}

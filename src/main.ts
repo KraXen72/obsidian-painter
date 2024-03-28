@@ -8,7 +8,6 @@ import { createHighlighterIcons } from "./custom-icons";
 
 import { createStyles } from "src/utils/create-style";
 import { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
-import { wait } from "./utils/debounce";
 
 export default class HighlightrPlugin extends Plugin {
 	app: EnhancedApp;
@@ -35,10 +34,10 @@ export default class HighlightrPlugin extends Plugin {
 		this.addCommand({
 			id: "open-menu",
 			name: "Open Painter Menu",
-			icon: "paintbrush-2",
+			icon: "painter-icon",
 			editorCallback: (editor: EnhancedEditor) => {
 				!document.querySelector(".menu.painter-plugin-menu-container")
-					? highlighterMenu(this.app, this.settings, editor)
+					? highlighterMenu(this.app, this.settings, editor, this.eraseHighlight)
 					: true;
 			},
 		});
@@ -144,7 +143,7 @@ export default class HighlightrPlugin extends Plugin {
 					prefix:
 						this.settings.highlighterMethods === "css-classes"
 							? `<mark class="hltr-${highlighterKey.toLowerCase()}">`
-							: `<mark style="--hltr-color:${this.settings.highlighters[highlighterKey]}">`,
+							: `<mark style="background-color:${this.settings.highlighters[highlighterKey]}">`,
 					suffix: "</mark>",
 				},
 			};

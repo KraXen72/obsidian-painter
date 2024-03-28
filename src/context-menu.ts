@@ -20,7 +20,7 @@ export default function contextMenu(
 		item
 			.setTitle("Color")
 			.setIcon("paintbrush-2")
-			.onClick(async () => highlighterMenu(app, settings, editor));
+			.onClick(async () => highlighterMenu(app, settings, editor, plugin.eraseHighlight));
 	});
 
 	if (!selection) return;

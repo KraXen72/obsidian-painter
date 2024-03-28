@@ -18,6 +18,7 @@ export interface HighlightrSettings {
 	highlighterMethods: string;
 	highlighters: Highlighters;
 	orderedColors: string[];
+	menuMode: 'normal' | 'minimal';
 }
 
 const DEFAULT_SETTINGS: HighlightrSettings = {
@@ -32,6 +33,7 @@ const DEFAULT_SETTINGS: HighlightrSettings = {
 		"o": "#d08770"
 	},
 	orderedColors: [],
+	menuMode: 'normal'
 };
 
 DEFAULT_SETTINGS.orderedColors = Object.keys(DEFAULT_SETTINGS.highlighters);

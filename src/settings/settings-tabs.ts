@@ -32,6 +32,21 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "Plugin Settings" });
 
 		new Setting(containerEl)
+			.setName('Menu Mode')
+			.setDesc(`Set the menu style - 'minimal' shows icons only in one line`)
+			.addDropdown(dropdown => {
+				dropdown.addOptions({ minimal: 'minimal', normal: 'normal' });
+				dropdown
+					.setValue(this.plugin.settings.menuMode)
+					.onChange((newMode) => {
+						this.plugin.settings.menuMode = newMode as 'minimal' | 'normal';
+						this.plugin.saveSettings();
+						this.plugin.saveData(this.plugin.settings);
+						this.plugin.refresh();
+					});
+			});
+
+		new Setting(containerEl)
 			.setName("Choose highlight method")
 			.setDesc(
 				`Choose between highlighting with inline CSS or CSS classes. Please note that there are pros and cons to both choices. Inline CSS will keep you from being reliant on external CSS files if you choose to export your notes. CSS classes are more flexible and easier to customize.`
@@ -119,10 +134,11 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		colorAlphaInput.inputEl.setCssStyles({ width: '2.75rem' })
 		colorAlphaInput.setValue('ff')
 
+		const defaultColor = "#cca9ff"
 		let colPreviewEl: HTMLDivElement | null = null;
 		const updateColPreview = () => {
 			if (colPreviewEl === null) return;
-			let hex = colorValueInput.getValue() || "#ffffff"
+			let hex = colorValueInput.getValue() || defaultColor;
 			if (!hex.startsWith('#')) hex = "#" + hex
 			if (hex.length > 7) hex = hex.slice(0, 8)
 			let alpha = colorAlphaInput.getValue() || "ff"
@@ -133,7 +149,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		highlighterSetting
 			.addColorPicker((picker: ColorComponent & { colorPickerEl: HTMLInputElement }) => {
-				picker.setValue('#CCA9FF')
+				picker.setValue(defaultColor)
 				picker.colorPickerEl.addEventListener('input', (e) => {
 					if (e.target === null) return;
 					const et = e.target as HTMLInputElement
@@ -189,6 +205,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 					});
 			})
 
+		updateColPreview()
 		const highlightersContainer = containerEl.createEl("div", {
 			cls: "HighlightrSettingsTabsContainer",
 		});
@@ -235,6 +252,13 @@ export class HighlightrSettingTab extends PluginSettingTab {
 							this.display();
 						})
 					if (index === arr.length - 1) button.setDisabled(true)
+				})
+				.addButton(button => {
+					button
+						.setClass('painter-plugin-settings-button')
+						.setClass('painter-plugin-settings-button-edit')
+						.setTooltip('edit')
+						.setIcon('wrench')
 				})
 				.addButton((button) => {
 					button

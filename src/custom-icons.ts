@@ -6,13 +6,21 @@ export function createHighlighterIcons(
 	settings: HighlightrSettings,
 	plugin: HighlightrPlugin
 ) {
-	const highlighterIcons: Record<string, string> = {};
+	const highlighterIcons: Record<string, string> = {
+		// manually paste in the content's of icon.svg whenever it's updated
+		"painter-icon": `<svg version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"> <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"> <path d="m9 11-6 6v3h9l3-3" fill="#000"/> <path d="m22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" stroke-width="2.0002"/> <path d="m14 4 8 8-8-8" fill="none" stroke="#000" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="2.0002"/> </g> </svg>`
+	};
 
 	for (const key of plugin.settings.orderedColors) {
 		let highlighterpen = `painter-icon-${key}`.toLowerCase();
-		highlighterIcons[
-			highlighterpen
-		] = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0" stroke-linecap="round" stroke-linejoin="round"><path d="M20.707 5.826l-3.535-3.533a.999.999 0 0 0-1.408-.006L7.096 10.82a1.01 1.01 0 0 0-.273.488l-1.024 4.437L4 18h2.828l1.142-1.129l3.588-.828c.18-.042.345-.133.477-.262l8.667-8.535a1 1 0 0 0 .005-1.42zm-9.369 7.833l-2.121-2.12l7.243-7.131l2.12 2.12l-7.242 7.131zM4 20h16v2H4z" fill="${settings.highlighters[key]}"/></svg>`;
+		// ${settings.highlighters[key]}
+		highlighterIcons[ highlighterpen ] = `<svg version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+		<g fill="none" stroke="${settings.highlighters[key]}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+			<path d="m9 11-6 6v3h9l3-3" fill="${settings.highlighters[key]}"/>
+			<path d="m22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" stroke-width="2.0002"/>
+			<path d="m14 4 8 8-8-8" fill="none" stroke="${settings.highlighters[key]}" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="2.0002"/>
+		</g>
+	</svg>`
 	}
 
 	Object.keys(highlighterIcons).forEach((key) => {
