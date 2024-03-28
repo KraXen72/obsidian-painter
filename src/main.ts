@@ -144,7 +144,7 @@ export default class HighlightrPlugin extends Plugin {
 					prefix:
 						this.settings.highlighterMethods === "css-classes"
 							? `<mark class="hltr-${highlighterKey.toLowerCase()}">`
-							: `<mark style="background: ${this.settings.highlighters[highlighterKey]};">`,
+							: `<mark style="--hltr-color:${this.settings.highlighters[highlighterKey]}">`,
 					suffix: "</mark>",
 				},
 			};
@@ -156,15 +156,13 @@ export default class HighlightrPlugin extends Plugin {
 					icon: `painter-icon-${lowerCaseColor}`,
 					editorCallback: async (editor: Editor) => {
 						applyCommand(commandsMap[type], editor);
-						await wait(10);
-						editor.focus();
 					},
 				});
 			});
 
 			this.addCommand({
 				id: "remove-highlight",
-				name: "Remove highlight",
+				name: "Clear color",
 				icon: "eraser",
 				editorCallback: async (editor: Editor) => {
 					this.eraseHighlight(editor);

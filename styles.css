@@ -6,6 +6,23 @@
 }
 
 /*highlighter style*/
+/* :is(
+	.highlightr-none,
+	.highlightr-text-color,
+	.highlightr-lowlight,
+	.highlightr-floating,
+	.highlightr-rounded,
+	.highlightr-realistic
+)
+:is(
+	mark:not(.style-demo),
+	> mark,
+	span.cm-highlight,
+	.markdown-preview-view mark
+) {
+	pointer-events: inherit;
+} */
+
 
 /* none */
 .highlightr-none mark:not(.style-demo),

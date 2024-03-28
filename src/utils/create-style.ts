@@ -9,7 +9,7 @@ export function createStyles(settings: HighlightrSettings) {
 	let styleSheet = document.createElement("style");
 	setAttributes(styleSheet, {
 		type: "text/css",
-		id: "highlightr-styles",
+		id: "painter-styles",
 	});
 
 	let header = document.getElementsByTagName("HEAD")[0];
