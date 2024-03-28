@@ -305,13 +305,12 @@ button.painter-plugin-settings-button svg {
 	gap: 6px;
 }
 
-.painter-plugin-settings-color,
-.painter-plugin-settings-value {
-	width: 42%;
-	color: var(--text-normal);
+.painter-plugin-settings-color {
+	flex-grow: 1;
 }
 
 .painter-plugin-color-preview {
+	display: block;
 	background-color: var(--checker-color-2);
     background-image: var(--checker-gradient), var(--checker-gradient);
     background-position: 0 0, var(--checker-size) var(--checker-size);
@@ -371,13 +370,10 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button:is(
 	border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.setting-item.highlighter-setting-item:first-child {
-	padding-top: 18px;
-}
-
 .highlighter-setting-item {
 	padding: 18px 0 18px 0;
 	border-top: none;
+	user-select: text;
 }
 
 .highlighter-sortable-fallback {
