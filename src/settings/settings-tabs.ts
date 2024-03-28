@@ -101,12 +101,22 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		colorNameInput.inputEl.addClass("highlighter-settings-color");
 
 		const colorValueInput = new TextComponent(highlighterSetting.controlEl)
-			.setPlaceholder("Color HEX: Click off color picker to update")
-
+			.setPlaceholder("Color HEX: Click off color picker to update");
 		colorValueInput.inputEl.addClass("highlighter-settings-value");
+		colorValueInput.inputEl.setCssStyles({ width: '5rem' })
+
+		const colorAlphaInput = new TextComponent(highlighterSetting.controlEl)
+			.setPlaceholder("Alpha / Opacity");
+		colorAlphaInput.inputEl.setCssStyles({ width: '2.5rem' })
 
 
 		// const colorColorInput = createEl('input', { type: 'color' })
+
+		const hexSuffix = (num: number) => {
+			const repr = num.toString(16)
+			if (repr.length === 1) return '0'+repr;
+			return repr;
+		}
 
 
 		highlighterSetting
@@ -124,7 +134,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				cb.sliderEl.title = 'Alpha / opacity'
 				cb.onChange(val => {
 					cb.showTooltip()
-					console.log(val)
+					colorAlphaInput.setValue(hexSuffix(val))
 				})
 			})
 			.addButton((button) => {
