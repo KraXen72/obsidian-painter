@@ -22,7 +22,7 @@ const highlighterMenu = (
     settings.orderedColors.forEach((color) => {
       menu.addItem((item) => {
         item.setTitle(color);
-        item.setIcon(`highlightr-pen-${color}`.toLowerCase());
+        item.setIcon(`paintbrush-2-${color}`.toLowerCase());
         item.onClick(() => app.commands.executeCommandById(`highlightr-plugin:${color}`));
       });
     });

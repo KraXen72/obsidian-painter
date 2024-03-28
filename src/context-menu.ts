@@ -18,7 +18,7 @@ export default function contextMenu(
     itemDom.addClass("highlighter-button");
     item
       .setTitle("Highlight")
-      .setIcon("highlightr-pen")
+      .setIcon("paintbrush-2")
       .onClick(async (e) => {
         highlighterMenu(app, settings, editor);
       });
@@ -28,7 +28,7 @@ export default function contextMenu(
     menu.addItem((item) => {
       item
         .setTitle("Erase highlight")
-        .setIcon("highlightr-eraser")
+        .setIcon("eraser")
         .onClick((e) => {
           if (editor.getSelection()) {
             plugin.eraseHighlight(editor);

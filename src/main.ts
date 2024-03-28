@@ -4,7 +4,6 @@ import { HighlightrSettings } from "./settings/settings-data";
 import DEFAULT_SETTINGS from "./settings/settings-data";
 import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
-import addIcons from "./custom-icons";
 import { createHighlighterIcons } from "./custom-icons";
 
 import { createStyles } from "src/utils/create-style";
@@ -19,7 +18,6 @@ export default class HighlightrPlugin extends Plugin {
 
   async onload() {
     console.log(`Highlightr v${this.manifest.version} loaded`);
-    addIcons();
 
     await this.loadSettings();
 
@@ -37,7 +35,7 @@ export default class HighlightrPlugin extends Plugin {
     this.addCommand({
       id: "highlighter-plugin-menu",
       name: "Open Highlightr",
-      icon: "highlightr-pen",
+      icon: "paintbrush-2",
       editorCallback: (editor: EnhancedEditor) => {
         !document.querySelector(".menu.highlighterContainer")
           ? highlighterMenu(this.app, this.settings, editor)
@@ -151,7 +149,7 @@ export default class HighlightrPlugin extends Plugin {
       };
 
       Object.keys(commandsMap).forEach((type) => {
-        let highlighterpen = `highlightr-pen-${highlighterKey}`.toLowerCase();
+        let highlighterpen = `paintbrush-2-${highlighterKey}`.toLowerCase();
         this.addCommand({
           id: highlighterKey,
           name: highlighterKey,
@@ -167,7 +165,7 @@ export default class HighlightrPlugin extends Plugin {
       this.addCommand({
         id: "unhighlight",
         name: "Remove highlight",
-        icon: "highlightr-eraser",
+        icon: "eraser",
         editorCallback: async (editor: Editor) => {
           this.eraseHighlight(editor);
           editor.focus();
