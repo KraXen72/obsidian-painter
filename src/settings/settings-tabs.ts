@@ -8,6 +8,7 @@ import {
 	ColorComponent,
 } from "obsidian";
 import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES } from "./settings-data";
+import { numToHexSuffix } from "src/utils";
 
 export class HighlightrSettingTab extends PluginSettingTab {
 	plugin: HighlightrPlugin;
@@ -107,15 +108,17 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		colorAlphaInput.inputEl.setCssStyles({ width: '2.75rem' })
 		colorAlphaInput.setValue('ff')
 
-
-		// const colorColorInput = createEl('input', { type: 'color' })
-
-		const hexSuffix = (num: number) => {
-			const repr = num.toString(16)
-			if (repr.length === 1) return '0' + repr;
-			return repr;
+		let colPreviewEl: HTMLDivElement | null = null;
+		const updateColPreview = () => {
+			if (colPreviewEl === null) return;
+			let hex = colorValueInput.getValue() || "#ffffff"
+			if (!hex.startsWith('#')) hex = "#" + hex
+			if (hex.length > 7) hex = hex.slice(0, 8)
+			let alpha = colorAlphaInput.getValue() || "ff"
+			if (alpha.length > 2) alpha = alpha.slice(0, 3)
+			let res = hex + alpha
+			colPreviewEl.style.backgroundColor = res
 		}
-
 
 		highlighterSetting
 			.addColorPicker((picker: ColorComponent & { colorPickerEl: HTMLInputElement }) => {
@@ -124,6 +127,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 					if (e.target === null) return;
 					const et = e.target as HTMLInputElement
 					colorValueInput.setValue(et.value)
+					updateColPreview()
 				})
 			})
 			.addSlider(slider => {
@@ -132,11 +136,15 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				slider.sliderEl.title = 'Alpha / opacity'
 				slider.onChange(val => {
 					slider.showTooltip()
-					colorAlphaInput.setValue(hexSuffix(val))
+					const val255 = Math.round((val / 100) * 255)
+					colorAlphaInput.setValue(numToHexSuffix(val255))
+					updateColPreview()
 				})
 			})
 			.addButton(button => {
 				button.setClass('painter-plugin-color-preview')
+				colPreviewEl = button.buttonEl.createDiv('div')
+				colPreviewEl.addClass('painter-plugin-color-preview2')
 			})
 			.addButton(button => {
 				button
