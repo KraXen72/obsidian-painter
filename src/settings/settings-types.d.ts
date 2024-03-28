@@ -1,10 +1,10 @@
 import { App, Editor, Menu } from "obsidian";
 
 export interface Coords {
-  top: number;
-  left: number;
-  right: number;
-  bottom: number;
+	top: number;
+	left: number;
+	right: number;
+	bottom: number;
 }
 
 export interface EnhancedMenu extends Menu {
@@ -12,13 +12,13 @@ export interface EnhancedMenu extends Menu {
 }
 
 export type EnhancedApp = App & {
-  commands: { executeCommandById: Function };
+	commands: { executeCommandById: Function };
 };
 
 export type EnhancedEditor = Editor & {
-  cursorCoords: Function;
-  coordsAtPos: Function;
-  cm: CodeMirror.Editor & { coordsAtPos: Function };
-  hasFocus: Function;
-  getSelection: Function;
+	cursorCoords: Function;
+	coordsAtPos: Function;
+	cm: CodeMirror.Editor & { coordsAtPos: Function };
+	hasFocus: Function;
+	getSelection: Function;
 };

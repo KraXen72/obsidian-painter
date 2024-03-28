@@ -5,35 +5,35 @@ import highlighterMenu from "./menu";
 import type { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
 
 export default function contextMenu(
-  app: EnhancedApp,
-  menu: Menu,
-  editor: EnhancedEditor,
-  plugin: HighlightrPlugin,
-  settings: HighlightrSettings
+	app: EnhancedApp,
+	menu: Menu,
+	editor: EnhancedEditor,
+	plugin: HighlightrPlugin,
+	settings: HighlightrSettings
 ): void {
-  const selection = editor.getSelection();
+	const selection = editor.getSelection();
 
-  menu.addItem((item) => {
-    const itemDom = (item as any).dom as HTMLElement;
-    itemDom.addClass("highlighter-button");
-    item
-      .setTitle("Highlight")
-      .setIcon("paintbrush-2")
-      .onClick(async (e) => {
-        highlighterMenu(app, settings, editor);
-      });
-  });
+	menu.addItem((item) => {
+		const itemDom = (item as any).dom as HTMLElement;
+		itemDom.addClass("painter-plugin-menu-button");
+		item
+			.setTitle("Highlight")
+			.setIcon("paintbrush-2")
+			.onClick(async (e) => {
+				highlighterMenu(app, settings, editor);
+			});
+	});
 
-  if (selection) {
-    menu.addItem((item) => {
-      item
-        .setTitle("Erase highlight")
-        .setIcon("eraser")
-        .onClick((e) => {
-          if (editor.getSelection()) {
-            plugin.eraseHighlight(editor);
-          }
-        });
-    });
-  }
+	if (selection) {
+		menu.addItem((item) => {
+			item
+				.setTitle("Erase highlight")
+				.setIcon("eraser")
+				.onClick((e) => {
+					if (editor.getSelection()) {
+						plugin.eraseHighlight(editor);
+					}
+				});
+		});
+	}
 }

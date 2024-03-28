@@ -88,59 +88,60 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		highlighterSetting
 			.setName("Choose highlight colors")
-			.setClass("highlighterplugin-setting-item")
+			.setClass("painter-plugin-setting-item")
 			.setDesc(
 				`Create new highlight colors by providing a color name and using the color picker to set the hex code value. Don't forget to save the color before exiting the color picker. Drag and drop the highlight color to change the order for your highlighter component.`
 			);
-		highlighterSetting.controlEl.setCssStyles({
-			'alignItems': 'center'
-		})
 
 		const colorNameInput = new TextComponent(highlighterSetting.controlEl);
 		colorNameInput.setPlaceholder("Color name");
-		colorNameInput.inputEl.addClass("highlighter-settings-color");
+		colorNameInput.inputEl.addClass("painter-plugin-settings-color");
 
 		const colorValueInput = new TextComponent(highlighterSetting.controlEl)
 			.setPlaceholder("Color HEX: Click off color picker to update");
-		colorValueInput.inputEl.addClass("highlighter-settings-value");
+		colorValueInput.inputEl.addClass("painter-plugin-settings-value");
 		colorValueInput.inputEl.setCssStyles({ width: '5rem' })
 
 		const colorAlphaInput = new TextComponent(highlighterSetting.controlEl)
-			.setPlaceholder("Alpha / Opacity");
-		colorAlphaInput.inputEl.setCssStyles({ width: '2.5rem' })
+			.setPlaceholder("Alpha");
+		colorAlphaInput.inputEl.setCssStyles({ width: '2.75rem' })
+		colorAlphaInput.setValue('ff')
 
 
 		// const colorColorInput = createEl('input', { type: 'color' })
 
 		const hexSuffix = (num: number) => {
 			const repr = num.toString(16)
-			if (repr.length === 1) return '0'+repr;
+			if (repr.length === 1) return '0' + repr;
 			return repr;
 		}
 
 
 		highlighterSetting
-			.addColorPicker((cb: ColorComponent & { colorPickerEl: HTMLInputElement }) => {
-				cb.setValue('#CCA9FF')
-				cb.colorPickerEl.addEventListener('input', (e) => {
+			.addColorPicker((picker: ColorComponent & { colorPickerEl: HTMLInputElement }) => {
+				picker.setValue('#CCA9FF')
+				picker.colorPickerEl.addEventListener('input', (e) => {
 					if (e.target === null) return;
 					const et = e.target as HTMLInputElement
 					colorValueInput.setValue(et.value)
 				})
 			})
-			.addSlider(cb => {
-				cb.setLimits(0, 255, 1)
-				cb.setValue(255)
-				cb.sliderEl.title = 'Alpha / opacity'
-				cb.onChange(val => {
-					cb.showTooltip()
+			.addSlider(slider => {
+				slider.setLimits(0, 100, 1)
+				slider.setValue(255)
+				slider.sliderEl.title = 'Alpha / opacity'
+				slider.onChange(val => {
+					slider.showTooltip()
 					colorAlphaInput.setValue(hexSuffix(val))
 				})
 			})
-			.addButton((button) => {
+			.addButton(button => {
+				button.setClass('painter-plugin-color-preview')
+			})
+			.addButton(button => {
 				button
-					.setClass("HighlightrSettingsButton")
-					.setClass("HighlightrSettingsButtonAdd")
+					.setClass("painter-plugin-settings-button")
+					.setClass("painter-plugin-settings-button-add")
 					.setIcon("save")
 					.setTooltip("Save")
 					.onClick(async (buttonEl: any) => {
@@ -185,9 +186,9 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		this.plugin.settings.orderedColors.forEach((highlighter, index, arr) => {
 			const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill=${this.plugin.settings.highlighters[highlighter]} stroke=${this.plugin.settings.highlighters[highlighter]} stroke-width="0" stroke-linecap="round" stroke-linejoin="round"><path d="M20.707 5.826l-3.535-3.533a.999.999 0 0 0-1.408-.006L7.096 10.82a1.01 1.01 0 0 0-.273.488l-1.024 4.437L4 18h2.828l1.142-1.129l3.588-.828c.18-.042.345-.133.477-.262l8.667-8.535a1 1 0 0 0 .005-1.42zm-9.369 7.833l-2.121-2.12l7.243-7.131l2.12 2.12l-7.242 7.131zM4 20h16v2H4z"/></svg>`;
 			const settingItem = highlightersContainer.createEl("div");
-			settingItem.addClass("highlighter-item-color");
+			settingItem.addClass("painter-plugin-item-color");
 			const colorIcon = settingItem.createEl("span");
-			colorIcon.addClass("highlighter-setting-icon");
+			colorIcon.addClass("painter-plugin-setting-icon");
 			colorIcon.innerHTML = icon;
 
 			new Setting(settingItem)
@@ -196,8 +197,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				.setDesc(this.plugin.settings.highlighters[highlighter])
 				.addButton(button => {
 					button
-						.setClass("HighlightrSettingsButton")
-						.setClass("HighlightrSettingsMoveUp")
+						.setClass("painter-plugin-settings-button")
 						.setTooltip("Move up")
 						.setIcon("chevron-up")
 						.onClick(() => {
@@ -208,8 +208,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				})
 				.addButton(button => {
 					button
-						.setClass("HighlightrSettingsButton")
-						.setClass("HighlightrSettingsMoveDown")
+						.setClass("painter-plugin-settings-button")
 						.setTooltip("Move down")
 						.setIcon("chevron-down")
 						.onClick(() => {
@@ -220,8 +219,8 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				})
 				.addButton((button) => {
 					button
-						.setClass("HighlightrSettingsButton")
-						.setClass("HighlightrSettingsButtonDelete")
+						.setClass("painter-plugin-settings-button")
+						.setClass("painter-plugin-settings-button-delete")
 						.setIcon("trash-2")
 						.setTooltip("Remove")
 						.onClick(async () => {
