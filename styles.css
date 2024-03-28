@@ -6,10 +6,31 @@
 }
 
 /*highlighter style*/
+/* none */
+.highlightr-none mark:not(.style-demo),
+.highlightr-none > mark.style-demo,
+.highlightr-none span.cm-highlight,
+.highlightr-none .markdown-preview-view mark {
+	background-color: var(--hltr-color);
+}
+
+/* text-color */
+.highlightr-text-color mark:not(.style-demo),
+.highlightr-text-color > mark.style-demo,
+.highlightr-text-color span.cm-highlight,
+.highlightr-text-color .markdown-preview-view mark {
+	color: var(--hltr-color);
+	background: transparent;
+	border-radius: 0;
+	padding: 0;
+}
+
 /*lowlight*/
-.highlightr-lowlight mark,
+.highlightr-lowlight mark:not(.style-demo),
+.highlightr-lowlight > mark.style-demo,
 .highlightr-lowlight span.cm-highlight,
 .highlightr-lowlight .markdown-preview-view mark {
+	background-color: var(--hltr-color);
 	--lowlight-background: var(--background-primary);
 	border-radius: 0;
 	background-image: linear-gradient(360deg,
@@ -33,9 +54,11 @@
 }
 
 /*floating*/
-.highlightr-floating mark,
+.highlightr-floating mark:not(.style-demo),
+.highlightr-floating > mark.style-demo,
 .highlightr-floating span.cm-highlight,
 .highlightr-floating .markdown-preview-view mark {
+	background-color: var(--hltr-color);
 	--floating-background: var(--background-primary);
 	border-radius: 0;
 	padding-bottom: 5px;
@@ -60,8 +83,10 @@
 }
 
 /*rounded*/
-.highlightr-rounded mark,
+.highlightr-rounded mark:not(.style-demo),
+.highlightr-rounded > mark.style-demo,
 .highlightr-rounded .markdown-preview-view mark {
+	background-color: var(--hltr-color);
 	margin: 0 -0.05em;
 	padding: 0.125em 0.15em;
 	border-radius: 0.2em;
@@ -87,8 +112,10 @@
 }
 
 /*realistic*/
-.highlightr-realistic mark,
+.highlightr-realistic mark:not(.style-demo),
+.highlightr-realistic > mark.style-demo,
 .highlightr-realistic .markdown-preview-view mark {
+	background-color: var(--hltr-color);
 	margin: 0 -0.05em;
 	padding: 0.1em 0.4em;
 	border-radius: 0.8em 0.3em;
@@ -233,28 +260,45 @@ button.painter-plugin-settings-button:disabled:hover {
 	background-color: var(--interactive-normal);
 }
 
+/* highlight style setting */
 button.painter-plugin-settings-button svg {
 	width: 1.3em;
 	height: 1.3em;
 	display: flex;
+}
+.painter-plugin-setting-item-pick-hl .setting-item-info {
+	display: grid;
+	grid-template: repeat(3, min-content) / 1fr min-content;
+	grid-template-areas:
+	"title title"
+	"info info"
+	"styledemo reroll";
+	column-gap: 0.5rem;
+}
+.painter-plugin-setting-item-pick-hl .setting-item-info .setting-item-name {
+	grid-area: title;
+}
+.painter-plugin-setting-item-pick-hl .setting-item-info .setting-item-description {
+	grid-area: info;
+}
+
+/* color picker setting */
+.painter-plugin-setting-item-pick-col {
+	display: block;
+}
+
+.painter-plugin-setting-item-pick-col .setting-item-control {
+	display: flex;
+	margin-top: 12px;
+	align-items: center;
+	justify-content: start;
+	gap: 6px;
 }
 
 .painter-plugin-settings-color,
 .painter-plugin-settings-value {
 	width: 42%;
 	color: var(--text-normal);
-}
-
-.painter-plugin-setting-item {
-	display: block;
-}
-
-.painter-plugin-setting-item .setting-item-control {
-	display: flex;
-	margin-top: 12px;
-	align-items: center;
-	justify-content: start;
-	grid-gap: 6px;
 }
 
 .painter-plugin-color-preview {
@@ -271,6 +315,16 @@ button.painter-plugin-settings-button svg {
 	width: 100%;
 	height: 100%;
 }
+.painter-plugin-style-demo {
+	font-size: .925em; margin-top: 12px;
+	display: flex;
+	column-gap: 1rem;
+	color: var(--text-normal, inherit);
+}
+.painter-plugin-style-demo mark {
+	color: inherit;
+}
+  
 
 /* i bet these can be simplified... */
 .modal.mod-settings button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button.painter-plugin-settings-button-add,
@@ -353,42 +407,6 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button.painter-pl
 .cm-s-obsidian span.cm-highlight {
 	background: #a5756233;
 	color: var(--text-normal);
-}
-
-/* remove border radius from normal highlight */
-.highlightr-rounded span.cm-highlight:not(.hltr-aa) {
-	border-radius: 0px !important;
-}
-
-/* instead of background, change text color for defined highlights */
-mark.hltr-r,
-mark.hltr-g,
-mark.hltr-b,
-mark.hltr-p,
-mark.hltr-o {
-	background: transparent !important;
-	background-color: transparent !important;
-	padding-left: 0px !important;
-	padding-right: 0px !important;
-}
-/* taken from nord pallete colors */
-mark.hltr-r {
-	color: #bf616a !important
-}
-mark.hltr-g {
-	color: #a3be8c !important
-}
-mark.hltr-b {
-	color: #81a1c1 !important
-}
-mark.hltr-p {
-	color: #b48ead !important
-}
-mark.hltr-o {
-	color: #d08770 !important
-}
-mark.hltr-aa {
-	color: var(--text-normal)
 }
 
 /* highlightr compact menu */

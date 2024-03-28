@@ -14,12 +14,13 @@ export function createStyles(settings: HighlightrSettings) {
 
 	let header = document.getElementsByTagName("HEAD")[0];
 	header.appendChild(styleSheet);
+	console.log(settings.highlighterStyle)
 
 	Object.keys(settings.highlighters).forEach((highlighter) => {
 		let colorLowercase = highlighter.toLowerCase();
 		addNewStyle(
 			`.hltr-${colorLowercase},\nmark.hltr-${colorLowercase},\n.markdown-preview-view mark.hltr-${colorLowercase}`,
-			`background: ${settings.highlighters[highlighter]};`,
+			`--hltr-color: ${settings.highlighters[highlighter]};`,
 			styleSheet
 		);
 	});

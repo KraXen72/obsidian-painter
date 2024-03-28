@@ -1,5 +1,6 @@
 export const HIGHLIGHTER_STYLES = [
 	"none",
+	'text-color',
 	"lowlight",
 	"floating",
 	"rounded",

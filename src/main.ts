@@ -1,6 +1,6 @@
 import { Editor, Menu, Plugin, PluginManifest } from "obsidian";
 import { HighlightrSettingTab } from "./settings/settings-tabs";
-import { HighlightrSettings } from "./settings/settings-data";
+import { HIGHLIGHTER_STYLES, HighlightrSettings } from "./settings/settings-data";
 import DEFAULT_SETTINGS from "./settings/settings-data";
 import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
@@ -179,22 +179,12 @@ export default class HighlightrPlugin extends Plugin {
 	};
 
 	updateStyle = () => {
-		document.body.classList.toggle(
-			"highlightr-lowlight",
-			this.settings.highlighterStyle === "lowlight"
-		);
-		document.body.classList.toggle(
-			"highlightr-floating",
-			this.settings.highlighterStyle === "floating"
-		);
-		document.body.classList.toggle(
-			"highlightr-rounded",
-			this.settings.highlighterStyle === "rounded"
-		);
-		document.body.classList.toggle(
-			"highlightr-realistic",
-			this.settings.highlighterStyle === "realistic"
-		);
+		for (const style of HIGHLIGHTER_STYLES) {
+			document.body.classList.toggle(
+				`highlightr-${style}`,
+				this.settings.highlighterStyle === style
+			);
+		}
 	};
 
 	onunload() {

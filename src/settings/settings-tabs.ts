@@ -8,7 +8,7 @@ import {
 	ColorComponent,
 } from "obsidian";
 import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES } from "./settings-data";
-import { numToHexSuffix } from "src/utils";
+import { numToHexSuffix, sample } from "src/utils";
 
 export class HighlightrSettingTab extends PluginSettingTab {
 	plugin: HighlightrPlugin;
@@ -22,11 +22,13 @@ export class HighlightrSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h1", { text: "Highlightr" });
-		containerEl.createEl("p", { text: "Created by " }).createEl("a", {
-			text: "Chetachi 👩🏽‍💻",
-			href: "https://github.com/chetachiezikeuzor",
-		});
+		containerEl.createEl("h1", { text: "Painter" });
+		const authorP = containerEl.createEl('p')
+		authorP.createEl("span", { text: "Initially created by " })
+		authorP.createEl('a', { text: 'Chetachi 👩🏽‍💻', href: 'https://github.com/chetachiezikeuzor', })
+		authorP.createEl('span', { text: '. Rewritten & extended by ' })
+		authorP.createEl('a', { text: 'KraXen72 🧉', href: 'https://github.com/KraXen72' })
+		authorP.createEl('span', { text: '.' })
 		containerEl.createEl("h2", { text: "Plugin Settings" });
 
 		new Setting(containerEl)
@@ -55,6 +57,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		stylesSetting
 			.setName("Choose highlight style")
+			.setClass('painter-plugin-setting-item-pick-hl')
 			.setDesc(
 				`Depending on your design aesthetic, you may want to customize the style of your highlights. Choose from an assortment of different highlighter styles by using the dropdown. Depending on your theme, this plugin's CSS may be overriden.`
 			)
@@ -73,23 +76,31 @@ export class HighlightrSettingTab extends PluginSettingTab {
 			});
 
 		const styleDemo = () => {
-			const d = createEl("p");
-			d.setAttribute("style", "font-size: .925em; margin-top: 12px;");
-			d.innerHTML = `
-			<span style="background:#FFB7EACC;padding: .125em .125em;--lowlight-background: var(--background-primary);border-radius: 0;background-image: linear-gradient(360deg,rgba(255, 255, 255, 0) 40%,var(--lowlight-background) 40%) !important;">Lowlight</span> 
-			<span style="background:#93C0FFCC;--floating-background: var(--background-primary);border-radius: 0;padding-bottom: 5px;background-image: linear-gradient(360deg,rgba(255, 255, 255, 0) 28%,var(--floating-background) 28%) !important;">Floating</span> 
-			<span style="background:#9CF09CCC;margin: 0 -0.05em;padding: 0.1em 0.4em;border-radius: 0.8em 0.3em;-webkit-box-decoration-break: clone;box-decoration-break: clone;text-shadow: 0 0 0.75em var(--background-primary-alt);">Realistic</span> 
-			<span style="background:#CCA9FFCC;margin: 0 -0.05em;padding: 0.125em 0.15em;border-radius: 0.2em;-webkit-box-decoration-break: clone;box-decoration-break: clone;">Rounded</span>`;
-			return d;
+			let html = ''
+			if (this.plugin.settings.orderedColors.length === 0) {
+				return '<em>Add atleast 1 color to showcase different styles</em>'
+			} else {
+				const col = sample(this.plugin.settings.orderedColors);
+				for (const st of HIGHLIGHTER_STYLES) {
+					html += `<div class="highlightr-${st}"><mark class="hltr-${col} style-demo">${st}</mark></div>`
+				}
+			}
+			return html;
 		};
 
-		stylesSetting.infoEl.appendChild(styleDemo());
+		let styleDemoEl = createEl("p");
+		styleDemoEl.addClass('painter-plugin-style-demo');
+		styleDemoEl.innerHTML = styleDemo()
+		const reRollBtn = createEl('button', { text: 'try different color' })
+		reRollBtn.addEventListener('click', () => { styleDemoEl.innerHTML = styleDemo() });
+		stylesSetting.infoEl.appendChild(styleDemoEl);
+		stylesSetting.infoEl.appendChild(reRollBtn)
 
 		const highlighterSetting = new Setting(containerEl);
 
 		highlighterSetting
 			.setName("Choose highlight colors")
-			.setClass("painter-plugin-setting-item")
+			.setClass("painter-plugin-setting-item-pick-col")
 			.setDesc(
 				`Create new highlight colors by providing a color name and using the color picker to set the hex code value. Don't forget to save the color before exiting the color picker. Drag and drop the highlight color to change the order for your highlighter component.`
 			);
