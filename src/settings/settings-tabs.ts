@@ -190,11 +190,12 @@ export class HighlightrSettingTab extends PluginSettingTab {
 						let colorName = colorNameInput.getValue().replace(" ", "-");
 						let colorValue = colorValueInput.getValue();
 
+						if (colorName.length > 50) colorName = colorName.slice(0, 51)
 						if (!colorName) { new Notice("Painter: Color name missing"); return; }
 						if (!colorValue) { new Notice("Painter: HEX code missing"); return; }
 						if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
 						if (this.plugin.settings.highlighterOrder.includes(colorName)) { 
-							new Notice("Painter: Color already exists"); 
+							new Notice(`Painter: Color '${colorName}' already exists`); 
 							return; 
 						}
 
