@@ -254,17 +254,16 @@ export class HighlightrSettingTab extends PluginSettingTab {
 						})
 					if (index === arr.length - 1) button.setDisabled(true)
 				})
-				.addButton(button => {
-					button
-						.setClass('painter-plugin-settings-button')
-						.setClass('painter-plugin-settings-button-edit')
-						.setTooltip('edit (not implemented yet)')
-						.setIcon('wrench')
-						.setDisabled(true)
-						// .onClick( () => {
+				// .addButton(button => {
+				// 	button
+				// 		.setClass('painter-plugin-settings-button')
+				// 		.setClass('painter-plugin-settings-button-edit')
+				// 		.setTooltip('edit')
+				// 		.setIcon('wrench')
+				// 		.onClick( () => {
 
-						// })
-				})
+				// 		})
+				// })
 				.addButton((button) => {
 					button
 						.setClass("painter-plugin-settings-button")
