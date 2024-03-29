@@ -19,7 +19,7 @@ export default function contextMenu(
 		item.dom.addClass("painter-plugin-menu-button");
 		item
 			.setTitle("Color")
-			.setIcon("paintbrush-2")
+			.setIcon("painter-icon")
 			.onClick(async () => highlighterMenu(app, settings, editor, plugin.eraseHighlight));
 	});
 

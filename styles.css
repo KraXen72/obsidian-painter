@@ -335,9 +335,3 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button:is(
 	border-top: none;
 	user-select: text;
 }
-
-/* consistent icon stroke width with others */
-.eraser svg path,
-.painter-icon svg path {
-	stroke-width: .3px !important;
-}
