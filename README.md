@@ -1,7 +1,9 @@
 # Painter
 > Paint text different colors  
   
-
+![minimal-menu](./screens/minimal-menu.png)  
+![normal-menu](./screens/menu-normal.png)  
+![commands](./screens/commands.png)
 
 Rewrite/fork of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin), utilizing a lot of it's code - credit to @chetachiezikeuzor
 Inspired by my [css snippet & data.json](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/61) to use Highlightr to change text color.
