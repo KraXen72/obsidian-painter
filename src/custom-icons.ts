@@ -3,20 +3,29 @@ import HighlightrPlugin from "./main";
 import { HighlightrSettings } from "./settings/settings-data";
 
 export function customHLIcon(color: string) {
-	return `<svg version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-	<g fill="none" stroke="${color}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-		<path d="m9 11-6 6v3h9l3-3" fill="${color}"/>
-		<path d="m22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" stroke-width="2.0002"/>
-		<path d="m14 4 8 8-8-8" fill="none" stroke="${color}" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="2.0002"/>
-	</g>
-</svg>`
+	const svg = createSvg('svg', { attr: {
+		version: '1.1',
+		viewBox: "0 0 24 24",
+		xmlns: 'http://www.w3.org/2000/svg'
+	} })
+	const g = svg.createSvg('g', { attr: {
+		fill: 'none',
+		stroke: color,
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
+		'stroke-width': 2
+	}})
+	g.createSvg('path', { attr: { d: "m9 11-6 6v3h9l3-3", fill: color } })
+	g.createSvg('path', { attr: { d: "m22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" }})
+	g.createSvg('path', { attr: { d: "m14 4 8 8-8-8", fill: 'none', stroke: color, 'stroke-linecap': 'butt', 'stroke-linejoin': 'miter' } })
+	return svg
 }
 
 export function createHighlighterIcons(
 	settings: HighlightrSettings,
 	plugin: HighlightrPlugin
 ) {
-	const highlighterIcons: Record<string, string> = {
+	const highlighterIcons: Record<string, SVGElement> = {
 		// manually paste in the content's of icon.svg whenever it's updated
 		"painter-icon": customHLIcon('currentColor')
 	};
@@ -27,7 +36,8 @@ export function createHighlighterIcons(
 	}
 
 	Object.keys(highlighterIcons).forEach((key) => {
-		addIcon(key, highlighterIcons[key]);
+		// we are only *reading* the outerHTML of our dynamically created svg
+		addIcon(key, highlighterIcons[key].outerHTML); 
 	});
 
 	return highlighterIcons;

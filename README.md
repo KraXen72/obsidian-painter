@@ -30,7 +30,7 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 
 ## TODO before release on Plugin Store
 - [ ] two way binding for color inputs (editing input box updates color picker/slider)
-- [ ] fullly replace remaining innerHTML calls
+- [x] fullly replace remaining innerHTML calls
   - don't worry, nothing sketchy is going on but it's a plugin guideline to not use `.innerHTML`. 
   - if unsure, you can check the source code for `innerHTML` usage
 - [ ] allow editing of colors
