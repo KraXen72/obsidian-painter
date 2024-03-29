@@ -24,7 +24,7 @@ const highlighterMenu = (
 	menu.dom.addClass("painter-plugin-menu-container");
 	if (settings.menuMode === 'minimal') menu.dom.addClass('minimal'); 
 
-	settings.orderedColors.forEach((color) => {
+	settings.highlighterOrder.forEach((color) => {
 		const lowerCaseColor = color.toLowerCase()
 		menu.addItem(item => {
 			item.setTitle(color);

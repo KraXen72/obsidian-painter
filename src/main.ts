@@ -82,7 +82,7 @@ export default class HighlightrPlugin extends Plugin {
 	};
 
 	generateCommands(editor: Editor) {
-		this.settings.orderedColors.forEach((highlighterKey: string) => {
+		this.settings.highlighterOrder.forEach((highlighterKey: string) => {
 			const lowerCaseColor = highlighterKey.toLowerCase()
 			const applyCommand = (command: CommandPlot, editor: Editor) => {
 				const selectedText = editor.getSelection();

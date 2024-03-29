@@ -93,10 +93,10 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		const styleDemo = () => {
 			const frag = new DocumentFragment()
-			if (this.plugin.settings.orderedColors.length === 0) {
+			if (this.plugin.settings.highlighterOrder.length === 0) {
 				frag.appendChild(createEl('em', { text: 'Add atleast 1 color to showcase different styles' }))
 			} else {
-				const col = sample(this.plugin.settings.orderedColors);
+				const col = sample(this.plugin.settings.highlighterOrder);
 				for (const st of HIGHLIGHTER_STYLES) {
 					frag.createDiv({ cls: `highlightr-${st}` }).createEl('mark', { cls: [`hltr-${col}`, 'style-demo'], text: st })
 				}
@@ -144,7 +144,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 			let hex = colorValueInput.getValue() || defaultColor;
 			if (!hex.startsWith('#')) hex = "#" + hex
 			if (hex.length > 7) hex = hex.slice(0, 8)
-			let alpha = colorAlphaInput.getValue() || "ff"
+			let alpha = colorAlphaInput.getValue() || ""
 			if (alpha.length > 2) alpha = alpha.slice(0, 3)
 			return hex + alpha
 		}
@@ -190,15 +190,15 @@ export class HighlightrSettingTab extends PluginSettingTab {
 						let colorName = colorNameInput.getValue().replace(" ", "-");
 						let colorValue = colorValueInput.getValue();
 
-						if (!colorName) { new Notice("Painter: HEX code missing"); return; }
+						if (!colorName) { new Notice("Painter: Color name missing"); return; }
+						if (!colorValue) { new Notice("Painter: HEX code missing"); return; }
 						if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
-						if (!colorValue) { new Notice("Painter: Color name missing"); return; }
-						if (this.plugin.settings.orderedColors.includes(colorName)) { 
+						if (this.plugin.settings.highlighterOrder.includes(colorName)) { 
 							new Notice("Painter: Color already exists"); 
 							return; 
 						}
 
-						this.plugin.settings.orderedColors.push(colorName);
+						this.plugin.settings.highlighterOrder.push(colorName);
 						this.plugin.settings.highlighters[colorName] = combinedColor();
 						await this.plugin.saveSettings();
 						this.display();
@@ -214,20 +214,20 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		const reorderColor = (oldIndex: number, newIndex: number) => {
 			if (newIndex < 0) return;
-			const arrayResult = this.plugin.settings.orderedColors;
+			const arrayResult = this.plugin.settings.highlighterOrder;
 			const [removed] = arrayResult.splice(oldIndex, 1);
 			arrayResult.splice(newIndex, 0, removed);
-			this.plugin.settings.orderedColors = arrayResult;
+			this.plugin.settings.highlighterOrder = arrayResult;
 			this.plugin.saveSettings();
 		}
 
-		this.plugin.settings.orderedColors.forEach((highlighter, index, arr) => {
+		this.plugin.settings.highlighterOrder.forEach((highlighter, index, arr) => {
 			const settingItem = highlightersContainer.createEl("div", { cls: "painter-plugin-item-color" });
 			const colorIcon = settingItem.createEl("span", { cls: "painter-plugin-setting-icon" });
 			colorIcon.appendChild(customHLIcon(this.plugin.settings.highlighters[highlighter]));
 
 			new Setting(settingItem)
-				.setClass("highlighter-setting-item")
+				.setClass("painter-plugin-color-setting-item")
 				.setName(highlighter)
 				.setDesc(this.plugin.settings.highlighters[highlighter])
 				.addButton(button => {
@@ -274,7 +274,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 								`highlightr-plugin:${highlighter}`
 							);
 							delete this.plugin.settings.highlighters[highlighter];
-							this.plugin.settings.orderedColors.remove(highlighter);
+							this.plugin.settings.highlighterOrder.remove(highlighter);
 							setTimeout(() => {
 								dispatchEvent(new Event("painter:refreshstyles"));
 							}, 100);

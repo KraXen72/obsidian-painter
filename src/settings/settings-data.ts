@@ -17,10 +17,11 @@ export interface HighlightrSettings {
 	highlighterStyle: string;
 	highlighterMethods: string;
 	highlighters: Highlighters;
-	orderedColors: string[];
+	highlighterOrder: string[];
 	menuMode: 'normal' | 'minimal';
 }
 
+// i'm keeping higlightr's keys so settings can be easily migrated
 const DEFAULT_SETTINGS: HighlightrSettings = {
 	highlighterStyle: "none",
 	highlighterMethods: "inline-styles",
@@ -32,10 +33,10 @@ const DEFAULT_SETTINGS: HighlightrSettings = {
 		"aa": "#a5756233",
 		"o": "#d08770"
 	},
-	orderedColors: [],
+	highlighterOrder: [],
 	menuMode: 'normal'
 };
 
-DEFAULT_SETTINGS.orderedColors = Object.keys(DEFAULT_SETTINGS.highlighters);
+DEFAULT_SETTINGS.highlighterOrder = Object.keys(DEFAULT_SETTINGS.highlighters);
 
 export default DEFAULT_SETTINGS;

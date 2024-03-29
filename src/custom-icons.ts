@@ -30,7 +30,7 @@ export function createHighlighterIcons(
 		"painter-icon": customHLIcon('currentColor')
 	};
 
-	for (const key of plugin.settings.orderedColors) {
+	for (const key of plugin.settings.highlighterOrder) {
 		let highlighterpen = `painter-icon-${key}`.toLowerCase();
 		highlighterIcons[highlighterpen] = customHLIcon(settings.highlighters[key])
 	}

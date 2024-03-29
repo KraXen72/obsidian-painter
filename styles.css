@@ -330,8 +330,8 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button:is(
 	border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.highlighter-setting-item {
-	padding: 18px 0 18px 0;
+.painter-plugin-color-setting-item {
+	padding: 0.4rem 0;
 	border-top: none;
 	user-select: text;
 }
