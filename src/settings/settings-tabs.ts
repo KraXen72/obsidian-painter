@@ -92,23 +92,25 @@ export class HighlightrSettingTab extends PluginSettingTab {
 			});
 
 		const styleDemo = () => {
-			let html = ''
+			const frag = new DocumentFragment()
 			if (this.plugin.settings.orderedColors.length === 0) {
-				return '<em>Add atleast 1 color to showcase different styles</em>'
+				frag.appendChild(createEl('em', { text: 'Add atleast 1 color to showcase different styles' }))
 			} else {
 				const col = sample(this.plugin.settings.orderedColors);
 				for (const st of HIGHLIGHTER_STYLES) {
-					html += `<div class="highlightr-${st}"><mark class="hltr-${col} style-demo">${st}</mark></div>`
+					frag.createDiv({ cls: `highlightr-${st}` }).createEl('mark', { cls: [`hltr-${col}`, 'style-demo'], text: st })
 				}
 			}
-			return html;
+			return frag
 		};
 
-		let styleDemoEl = createEl("p");
-		styleDemoEl.addClass('painter-plugin-style-demo');
-		styleDemoEl.innerHTML = styleDemo()
+		let styleDemoEl = createEl("p", { cls: 'painter-plugin-style-demo' });
+		styleDemoEl.appendChild(styleDemo())
 		const reRollBtn = createEl('button', { text: 'try different color' })
-		reRollBtn.addEventListener('click', () => { styleDemoEl.innerHTML = styleDemo() });
+		reRollBtn.addEventListener('click', () => { 
+			styleDemoEl.textContent = ''
+			styleDemoEl.appendChild(styleDemo())
+		});
 		stylesSetting.infoEl.appendChild(styleDemoEl);
 		stylesSetting.infoEl.appendChild(reRollBtn)
 

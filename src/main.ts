@@ -66,12 +66,13 @@ export default class HighlightrPlugin extends Plugin {
 	eraseHighlight = (editor: Editor) => {
 		// to remove any mark elements, we use DOMParser to create a sandbox
 		// then, remove any mark elements & read the result to set it back
+		// this is only *reading* the innerHTML, not setting it
 		const currentStr = editor.getSelection();
 		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
 		sandbox.querySelectorAll('mark').forEach(m => {
 			m.replaceWith(document.createTextNode(m.innerHTML))
 		})
-		editor.replaceSelection(sandbox.body.innerHTML); // this is only *reading* the innerHTML, not setting it
+		editor.replaceSelection(sandbox.body.innerHTML);
 		editor.focus();
 
 		// const newStr = currentStr
