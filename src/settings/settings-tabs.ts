@@ -222,8 +222,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		}
 
 		this.plugin.settings.orderedColors.forEach((highlighter, index, arr) => {
-			const settingItem = highlightersContainer.createEl("div");
-			settingItem.addClass("painter-plugin-item-color");
+			const settingItem = highlightersContainer.createEl("div", { cls: "painter-plugin-item-color" });
 			const colorIcon = settingItem.createEl("span", { cls: "painter-plugin-setting-icon" });
 			colorIcon.appendChild(customHLIcon(this.plugin.settings.highlighters[highlighter]));
 
