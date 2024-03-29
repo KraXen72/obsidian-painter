@@ -258,8 +258,9 @@ export class HighlightrSettingTab extends PluginSettingTab {
 					button
 						.setClass('painter-plugin-settings-button')
 						.setClass('painter-plugin-settings-button-edit')
-						.setTooltip('edit')
+						.setTooltip('edit (not implemented yet)')
 						.setIcon('wrench')
+						.setDisabled(true)
 						// .onClick( () => {
 
 						// })
