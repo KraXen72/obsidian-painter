@@ -139,15 +139,19 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		const defaultColor = "#cca9ff"
 		let colPreviewEl: HTMLDivElement | null = null;
-		const updateColPreview = () => {
-			if (colPreviewEl === null) return;
+
+		const combinedColor = () => {
 			let hex = colorValueInput.getValue() || defaultColor;
 			if (!hex.startsWith('#')) hex = "#" + hex
 			if (hex.length > 7) hex = hex.slice(0, 8)
 			let alpha = colorAlphaInput.getValue() || "ff"
 			if (alpha.length > 2) alpha = alpha.slice(0, 3)
-			let res = hex + alpha
-			colPreviewEl.style.backgroundColor = res
+			return hex + alpha
+		}
+
+		const updateColPreview = () => {
+			if (colPreviewEl === null) return;
+			colPreviewEl.style.backgroundColor = combinedColor()
 		}
 
 		highlighterSetting
@@ -182,29 +186,24 @@ export class HighlightrSettingTab extends PluginSettingTab {
 					.setClass("painter-plugin-settings-button-add")
 					.setIcon("save")
 					.setTooltip("Save")
-					.onClick(async (buttonEl: any) => {
-						let color = colorNameInput.inputEl.value.replace(" ", "-");
-						let value = colorValueInput.inputEl.value;
+					.onClick(async () => {
+						let colorName = colorNameInput.getValue().replace(" ", "-");
+						let colorValue = colorValueInput.getValue();
 
-						if (color && value) {
-							if (!this.plugin.settings.orderedColors.includes(color)) {
-								this.plugin.settings.orderedColors.push(color);
-								this.plugin.settings.highlighters[color] = value;
-								setTimeout(() => {
-									dispatchEvent(new Event("painter:refreshstyles"));
-								}, 100);
-								await this.plugin.saveSettings();
-								this.display();
-							} else {
-								buttonEl.stopImmediatePropagation();
-								new Notice("This color already exists");
-							}
+						if (!colorName) { new Notice("Painter: HEX code missing"); return; }
+						if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
+						if (!colorValue) { new Notice("Painter: Color name missing"); return; }
+						if (this.plugin.settings.orderedColors.includes(colorName)) { 
+							new Notice("Painter: Color already exists"); 
+							return; 
 						}
-						color && !value
-							? new Notice("Highlighter hex code missing")
-							: !color && value
-								? new Notice("Highlighter name missing")
-								: new Notice("Highlighter values missing"); // else
+
+						this.plugin.settings.orderedColors.push(colorName);
+						this.plugin.settings.highlighters[colorName] = combinedColor();
+						await this.plugin.saveSettings();
+						this.display();
+
+						dispatchEvent(new Event("painter:refreshstyles"));
 					});
 			})
 
