@@ -86,14 +86,14 @@ export default class HighlightrPlugin extends Plugin {
 			const lowerCaseColor = highlighterKey.toLowerCase()
 			const applyCommand = (command: CommandPlot, editor: Editor) => {
 				const selectedText = editor.getSelection();
-				const curserStart = editor.getCursor("from");
-				const curserEnd = editor.getCursor("to");
+				const cursorStart = editor.getCursor("from");
+				const cursorEnd = editor.getCursor("to");
 				const prefix = command.prefix;
 				const suffix = command.suffix || prefix;
 				const setCursor = (mode: number) => {
 					editor.setCursor(
-						curserStart.line + command.line * mode,
-						curserEnd.ch + cursorPos * mode
+						cursorStart.line + command.line * mode,
+						cursorEnd.ch + cursorPos * mode
 					);
 				};
 				const cursorPos =
@@ -101,17 +101,17 @@ export default class HighlightrPlugin extends Plugin {
 						? prefix.length + suffix.length + 1
 						: prefix.length;
 				const preStart = {
-					line: curserStart.line - command.line,
-					ch: curserStart.ch - prefix.length,
+					line: cursorStart.line - command.line,
+					ch: cursorStart.ch - prefix.length,
 				};
-				const pre = editor.getRange(preStart, curserStart);
+				const pre = editor.getRange(preStart, cursorStart);
 
 				const sufEnd = {
-					line: curserStart.line + command.line,
-					ch: curserEnd.ch + suffix.length,
+					line: cursorStart.line + command.line,
+					ch: cursorEnd.ch + suffix.length,
 				};
 
-				const suf = editor.getRange(curserEnd, sufEnd);
+				const suf = editor.getRange(cursorEnd, sufEnd);
 
 				const preLast = pre.slice(-1);
 				const prefixLast = prefix.trimStart().slice(-1);
@@ -122,8 +122,8 @@ export default class HighlightrPlugin extends Plugin {
 						editor.replaceRange(selectedText, preStart, sufEnd);
 						const changeCursor = (mode: number) => {
 							editor.setCursor(
-								curserStart.line + command.line * mode,
-								curserEnd.ch + (cursorPos * mode + 8)
+								cursorStart.line + command.line * mode,
+								cursorEnd.ch + (cursorPos * mode + 8)
 							);
 						};
 						return changeCursor(-1);
