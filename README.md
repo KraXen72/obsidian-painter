@@ -10,7 +10,7 @@ Inspired by my [css snippet & data.json](https://github.com/chetachiezikeuzor/Hi
 
 The aim of this plugin is to support most features of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) as well as changing of the text color
 
-## Improvements over original plugins
+## Improvements over original plugin
 - clean up file structure & move to esbuild instead of rollup
 - removed a bunch of unnecessary code & styles, overall cleanup & rewrite
   - removed a bunch of custom icons in favor of normal obsidian icons	
