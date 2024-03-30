@@ -5,9 +5,12 @@ export const HIGHLIGHTER_STYLES = [
 	"floating",
 	"rounded",
 	"realistic",
-];
+] as const;
 
-export const HIGHLIGHTER_METHODS = ["css-classes", "inline-styles"];
+export const HIGHLIGHTER_METHODS = [
+	"css-classes", 
+	"inline-styles"
+] as const;
 
 export interface Highlighters {
 	[color: string]: string;

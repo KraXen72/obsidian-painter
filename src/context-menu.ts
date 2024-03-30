@@ -20,7 +20,7 @@ export default function contextMenu(
 		item
 			.setTitle("Color")
 			.setIcon("painter-icon")
-			.onClick(async () => highlighterMenu(app, settings, editor, plugin.eraseHighlight));
+			.onClick(async () => highlighterMenu(app, settings, editor, plugin.eraseHighlight.bind(plugin)));
 	});
 
 	if (!selection) return;

@@ -24,6 +24,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.createEl("h1", { text: "Painter" });
+		
 		const authorP = containerEl.createEl('p')
 		authorP.createEl("span", { text: "Initially created by " })
 		authorP.createEl('a', { text: 'Chetachi 👩🏽‍💻', href: 'https://github.com/chetachiezikeuzor', })

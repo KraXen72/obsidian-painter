@@ -1,6 +1,6 @@
 import { Editor, Menu, Plugin, PluginManifest } from "obsidian";
 import { HighlightrSettingTab } from "./settings/settings-tabs";
-import { HIGHLIGHTER_STYLES, HighlightrSettings } from "./settings/settings-data";
+import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES, HighlightrSettings } from "./settings/settings-data";
 import DEFAULT_SETTINGS from "./settings/settings-data";
 import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
@@ -8,6 +8,17 @@ import { createHighlighterIcons } from "./custom-icons";
 
 import { createStyles } from "src/utils/create-style";
 import { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
+
+type CommandPlot = {
+	char: number;
+	line: number;
+	prefix: string;
+	suffix: string;
+};
+
+type commandsPlot = {
+	[key: string]: CommandPlot;
+};
 
 export default class HighlightrPlugin extends Plugin {
 	app: EnhancedApp;
@@ -18,6 +29,7 @@ export default class HighlightrPlugin extends Plugin {
 
 	async onload() {
 		console.log(`Painter v${this.manifest.version} loaded`);
+		this.parser = new DOMParser();
 
 		await this.loadSettings();
 
@@ -27,7 +39,7 @@ export default class HighlightrPlugin extends Plugin {
 		});
 
 		this.registerEvent(
-			this.app.workspace.on("editor-menu", this.handleHighlighterInContextMenu)
+			this.app.workspace.on("editor-menu", this.handleHighlighterInContextMenu.bind(this))
 		);
 
 		this.addSettingTab(new HighlightrSettingTab(this.app, this));
@@ -37,9 +49,8 @@ export default class HighlightrPlugin extends Plugin {
 			name: "Open Painter Menu",
 			icon: "painter-icon",
 			editorCallback: (editor: EnhancedEditor) => {
-				!document.querySelector(".menu.painter-plugin-menu-container")
-					? highlighterMenu(this.app, this.settings, editor, this.eraseHighlight)
-					: true;
+				if (document.querySelector(".menu.painter-plugin-menu-container")) return;
+				highlighterMenu(this.app, this.settings, editor, this.eraseHighlight.bind(this))
 			},
 		});
 
@@ -50,7 +61,6 @@ export default class HighlightrPlugin extends Plugin {
 		});
 		this.generateCommands(this.editor);
 		this.refresh();
-		this.parser = new DOMParser();
 	}
 
 	reloadStyles(settings: HighlightrSettings) {
@@ -63,97 +73,87 @@ export default class HighlightrPlugin extends Plugin {
 		}
 	}
 
-	eraseHighlight = (editor: Editor) => {
+	eraseHighlight(editor: Editor) {
 		// to remove any mark elements, we use DOMParser to create a sandbox
 		// then, remove any mark elements & read the result to set it back
 		// this is only *reading* the innerHTML, not setting it
 		const currentStr = editor.getSelection();
 		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
 		sandbox.querySelectorAll('mark').forEach(m => {
-			m.replaceWith(document.createTextNode(m.innerHTML))
+			m.replaceWith(...Array.from(m.childNodes))
 		})
 		editor.replaceSelection(sandbox.body.innerHTML);
 		editor.focus();
-
-		// const newStr = currentStr
-		// 	.replace(/<mark style.*?[^>]>/g, "")
-		// 	.replace(/<mark class.*?[^>]>/g, "")
-		// 	.replace(/<\/mark>/g, "");
 	};
 
+	createPrefix(elem: string, key: string, mode: string, style: string) {
+		const styleKey = style === 'text-color' ? 'color' : 'background-color';
+		const attr = mode === "css-classes" 
+			? `class="hltr-${key.toLowerCase()}"` 
+			: `style="${styleKey}:${this.settings.highlighters[key]}"`;
+		return `<${elem} ${attr}>`
+	}
+
 	generateCommands(editor: Editor) {
-		this.settings.highlighterOrder.forEach((highlighterKey: string) => {
+		for (const highlighterKey of this.settings.highlighterOrder) {
 			const lowerCaseColor = highlighterKey.toLowerCase()
+
 			const applyCommand = (command: CommandPlot, editor: Editor) => {
 				const selectedText = editor.getSelection();
 				const cursorStart = editor.getCursor("from");
 				const cursorEnd = editor.getCursor("to");
 				const prefix = command.prefix;
 				const suffix = command.suffix || prefix;
+
+				const cursorPos =
+					selectedText.length > 0
+						? prefix.length + suffix.length + 1
+						: prefix.length;
+				
 				const setCursor = (mode: number) => {
 					editor.setCursor(
 						cursorStart.line + command.line * mode,
 						cursorEnd.ch + cursorPos * mode
 					);
 				};
-				const cursorPos =
-					selectedText.length > 0
-						? prefix.length + suffix.length + 1
-						: prefix.length;
-				const preStart = {
+
+				const changeCursor = (mode: number) => {
+					editor.setCursor(
+						cursorStart.line + command.line * mode,
+						cursorEnd.ch + (cursorPos * mode + 8)
+					);
+				};
+
+				const prefixStart = {
 					line: cursorStart.line - command.line,
 					ch: cursorStart.ch - prefix.length,
 				};
-				const pre = editor.getRange(preStart, cursorStart);
-
-				const sufEnd = {
+				
+				const suffixEnd = {
 					line: cursorStart.line + command.line,
 					ch: cursorEnd.ch + suffix.length,
 				};
-
-				const suf = editor.getRange(cursorEnd, sufEnd);
+				
+				const pre = editor.getRange(prefixStart, cursorStart);
+				const suf = editor.getRange(cursorEnd, suffixEnd);
 
 				const preLast = pre.slice(-1);
 				const prefixLast = prefix.trimStart().slice(-1);
-				const sufFirst = suf[0];
 
-				if (suf === suffix.trimEnd()) {
-					if (preLast === prefixLast && selectedText) {
-						editor.replaceRange(selectedText, preStart, sufEnd);
-						const changeCursor = (mode: number) => {
-							editor.setCursor(
-								cursorStart.line + command.line * mode,
-								cursorEnd.ch + (cursorPos * mode + 8)
-							);
-						};
-						return changeCursor(-1);
-					}
+				if (suf === suffix.trimEnd() && (preLast === prefixLast && selectedText)) {
+					editor.replaceRange(selectedText, prefixStart, suffixEnd);
+					return changeCursor(-1);
 				}
 
 				editor.replaceSelection(`${prefix}${selectedText}${suffix}`);
-
 				return setCursor(1);
-			};
-
-			type CommandPlot = {
-				char: number;
-				line: number;
-				prefix: string;
-				suffix: string;
-			};
-
-			type commandsPlot = {
-				[key: string]: CommandPlot;
 			};
 
 			const commandsMap: commandsPlot = {
 				highlight: {
 					char: 34,
 					line: 0,
-					prefix:
-						this.settings.highlighterMethods === "css-classes"
-							? `<mark class="hltr-${highlighterKey.toLowerCase()}">`
-							: `<mark style="background-color:${this.settings.highlighters[highlighterKey]}">`,
+					prefix: this.createPrefix('mark', highlighterKey, this.settings.highlighterMethods, this.settings.highlighterStyle),
 					suffix: "</mark>",
 				},
 			};
@@ -178,14 +178,14 @@ export default class HighlightrPlugin extends Plugin {
 					editor.focus();
 				},
 			});
-		});
+		};
 	}
 
-	refresh = () => {
+	refresh() {
 		this.updateStyle();
 	};
 
-	updateStyle = () => {
+	updateStyle() {
 		for (const style of HIGHLIGHTER_STYLES) {
 			document.body.classList.toggle(
 				`highlightr-${style}`,
@@ -198,10 +198,10 @@ export default class HighlightrPlugin extends Plugin {
 		console.log("Painter unloaded");
 	}
 
-	handleHighlighterInContextMenu = (
+	handleHighlighterInContextMenu(
 		menu: Menu,
 		editor: EnhancedEditor
-	): void => {
+	) {
 		contextMenu(this.app, menu, editor, this, this.settings);
 	};
 
