@@ -16,7 +16,6 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
   - removed a bunch of custom icons in favor of normal obsidian icons	
   - removed `wait()` calls (promise + settimeout)	
 - remove dependencies:
-  - `sortablejs` - replaced with up/down buttons
   - `pickr` - replaced with obsidian's native color picker & an alpha slider
 - new svg icon (modified lucide highlighter icon)
 - renamed command ids for consistency

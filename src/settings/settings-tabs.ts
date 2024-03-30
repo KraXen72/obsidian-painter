@@ -6,10 +6,12 @@ import {
 	Notice,
 	TextComponent,
 	ColorComponent,
+	setIcon,
 } from "obsidian";
 import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES } from "./settings-data";
 import { numToHexSuffix, sample } from "src/utils";
 import { customHLIcon } from "src/custom-icons";
+import Sortable from 'sortablejs';
 
 export class HighlightrSettingTab extends PluginSettingTab {
 	plugin: HighlightrPlugin;
@@ -24,7 +26,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.createEl("h1", { text: "Painter" });
-		
+
 		const authorP = containerEl.createEl('p')
 		authorP.createEl("span", { text: "Initially created by " })
 		authorP.createEl('a', { text: 'Chetachi 👩🏽‍💻', href: 'https://github.com/chetachiezikeuzor', })
@@ -211,20 +213,13 @@ export class HighlightrSettingTab extends PluginSettingTab {
 
 		updateColPreview()
 		const highlightersContainer = containerEl.createEl("div", {
-			cls: "HighlightrSettingsTabsContainer",
+			attr: { id: "painter-plugin-sortable-group" },
 		});
-
-		const reorderColor = (oldIndex: number, newIndex: number) => {
-			if (newIndex < 0) return;
-			const arrayResult = this.plugin.settings.highlighterOrder;
-			const [removed] = arrayResult.splice(oldIndex, 1);
-			arrayResult.splice(newIndex, 0, removed);
-			this.plugin.settings.highlighterOrder = arrayResult;
-			this.plugin.saveSettings();
-		}
 
 		this.plugin.settings.highlighterOrder.forEach((highlighter, index, arr) => {
 			const settingItem = highlightersContainer.createEl("div", { cls: "painter-plugin-item-color" });
+			const handle = settingItem.createDiv({ cls: "painter-plugin-setting-handle" })
+			setIcon(handle, 'grip-vertical')
 			const colorIcon = settingItem.createEl("span", { cls: "painter-plugin-setting-icon" });
 			colorIcon.appendChild(customHLIcon(this.plugin.settings.highlighters[highlighter]));
 
@@ -232,28 +227,6 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				.setClass("painter-plugin-color-setting-item")
 				.setName(highlighter)
 				.setDesc(this.plugin.settings.highlighters[highlighter])
-				.addButton(button => {
-					button
-						.setClass("painter-plugin-settings-button")
-						.setTooltip("Move up")
-						.setIcon("chevron-up")
-						.onClick(() => {
-							reorderColor(index, index - 1)
-							this.display();
-						})
-					if (index === 0) button.setDisabled(true)
-				})
-				.addButton(button => {
-					button
-						.setClass("painter-plugin-settings-button")
-						.setTooltip("Move down")
-						.setIcon("chevron-down")
-						.onClick(() => {
-							reorderColor(index, index + 1)
-							this.display();
-						})
-					if (index === arr.length - 1) button.setDisabled(true)
-				})
 				// .addButton(button => {
 				// 	button
 				// 		.setClass('painter-plugin-settings-button')
@@ -288,5 +261,18 @@ export class HighlightrSettingTab extends PluginSettingTab {
 			const a = createEl("a");
 			a.setAttribute("href", "");
 		});
+
+		const sort = new Sortable(highlightersContainer, {
+			group: 'shared',
+			animation: 150,
+			handle: '.painter-plugin-setting-handle',
+			ghostClass: 'painter-plugin-ghost',
+			onSort: ({ oldIndex, newIndex }) => {
+				if (typeof oldIndex === "undefined" || typeof newIndex === "undefined") return;
+        const [removed] = this.plugin.settings.highlighterOrder.splice(oldIndex, 1);
+				this.plugin.settings.highlighterOrder.splice(newIndex, 0, removed)
+        this.plugin.saveSettings();
+      },
+		})
 	}
 }

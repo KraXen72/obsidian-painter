@@ -140,6 +140,10 @@ export default class HighlightrPlugin extends Plugin {
 				const preLast = pre.slice(-1);
 				const prefixLast = prefix.trimStart().slice(-1);
 
+				// console.log(editor.setCursor)
+				// console.table(command)
+				// console.table({ selectedText, cursorStart, cursorEnd, cursorPos, prefix, prefixStart, suffix, suffixEnd, pre, suf })
+
 				if (suf === suffix.trimEnd() && (preLast === prefixLast && selectedText)) {
 					editor.replaceRange(selectedText, prefixStart, suffixEnd);
 					return changeCursor(-1);
@@ -151,14 +155,14 @@ export default class HighlightrPlugin extends Plugin {
 
 			const commandsMap: commandsPlot = {
 				highlight: {
-					char: 34,
+					char: 0, // 34
 					line: 0,
 					prefix: this.createPrefix('mark', highlighterKey, this.settings.highlighterMethods, this.settings.highlighterStyle),
 					suffix: "</mark>",
 				},
 			};
 
-			Object.keys(commandsMap).forEach((type) => {
+			for (const type in commandsMap) {
 				this.addCommand({
 					id: `paint-${lowerCaseColor}`,
 					name: highlighterKey,
@@ -167,7 +171,7 @@ export default class HighlightrPlugin extends Plugin {
 						applyCommand(commandsMap[type], editor);
 					},
 				});
-			});
+			}
 
 			this.addCommand({
 				id: "remove-highlight",
