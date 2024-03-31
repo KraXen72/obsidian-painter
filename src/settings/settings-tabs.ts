@@ -7,6 +7,8 @@ import {
 	TextComponent,
 	ColorComponent,
 	setIcon,
+	SliderComponent,
+	ButtonComponent,
 } from "obsidian";
 import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES } from "./settings-data";
 import { numToHexSuffix, sample } from "src/utils";
@@ -117,31 +119,80 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		stylesSetting.infoEl.appendChild(styleDemoEl);
 		stylesSetting.infoEl.appendChild(reRollBtn)
 
-		const highlighterSetting = new Setting(containerEl);
+		const addColorSetting = new Setting(containerEl);
 
-		highlighterSetting
+		addColorSetting
 			.setName("Choose highlight colors")
 			.setClass("painter-plugin-setting-item-pick-col")
 			.setDesc(
 				`Create new highlight colors by providing a color name and using the color picker to set the hex code value. Don't forget to save the color before exiting the color picker. Drag and drop the highlight color to change the order for your highlighter component.`
 			);
+		const defaultColor = "#cca9ff"
+		let colPreviewEl: HTMLDivElement | null = null;
 
-		const colorNameInput = new TextComponent(highlighterSetting.controlEl);
+		const colorNameInput = new TextComponent(addColorSetting.controlEl);
 		colorNameInput.setPlaceholder("Color name");
 		colorNameInput.inputEl.addClass("painter-plugin-settings-color");
 
-		const colorValueInput = new TextComponent(highlighterSetting.controlEl)
+		const colorValueInput = new TextComponent(addColorSetting.controlEl)
 			.setPlaceholder("Color HEX: Click off color picker to update");
 		colorValueInput.inputEl.addClass("painter-plugin-settings-value");
 		colorValueInput.inputEl.setCssStyles({ width: '5rem' })
 
-		const colorAlphaInput = new TextComponent(highlighterSetting.controlEl)
+		const colorAlphaInput = new TextComponent(addColorSetting.controlEl)
 			.setPlaceholder("Alpha");
 		colorAlphaInput.inputEl.setCssStyles({ width: '2.75rem' })
 		colorAlphaInput.setValue('ff')
 
-		const defaultColor = "#cca9ff"
-		let colPreviewEl: HTMLDivElement | null = null;
+		const colorPicker = new ColorComponent(addColorSetting.controlEl) as ColorComponent & { colorPickerEl: HTMLInputElement }
+		colorPicker.setValue(defaultColor)
+		colorPicker.colorPickerEl.addEventListener('input', (e) => {
+			if (e.target === null) return;
+			const et = e.target as HTMLInputElement
+			colorValueInput.setValue(et.value)
+			updateColPreview()
+		})
+
+		const alphaSlider = new SliderComponent(addColorSetting.controlEl)
+		alphaSlider.setLimits(0, 100, 1)
+		alphaSlider.setValue(255)
+		alphaSlider.sliderEl.title = 'Alpha / opacity'
+		alphaSlider.onChange(val => {
+			alphaSlider.showTooltip()
+			const val255 = Math.round((val / 100) * 255)
+			colorAlphaInput.setValue(numToHexSuffix(val255))
+			updateColPreview()
+		})
+
+		const colPreviewWrap = addColorSetting.controlEl.createDiv({ cls: 'painter-plugin-color-preview' })
+		colPreviewEl = colPreviewWrap.createDiv({ cls: 'painter-plugin-color-preview2' })
+		
+		const saveButton = new ButtonComponent(addColorSetting.controlEl)
+			.setClass("painter-plugin-settings-button")
+			.setClass("painter-plugin-settings-button-add")
+			.setIcon("save")
+			.setTooltip("Save")
+			.onClick(async () => {
+				let colorName = colorNameInput.getValue().replace(" ", "-");
+				let colorValue = colorValueInput.getValue();
+
+				if (colorName.length > 50) colorName = colorName.slice(0, 51)
+				if (!colorName) { new Notice("Painter: Color name missing"); return; }
+				if (!colorValue) { new Notice("Painter: HEX code missing"); return; }
+				if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
+				if (this.plugin.settings.highlighterOrder.includes(colorName)) { 
+					new Notice(`Painter: Color '${colorName}' already exists`); 
+					return; 
+				}
+
+				this.plugin.settings.highlighterOrder.push(colorName);
+				this.plugin.settings.highlighters[colorName] = combinedColor();
+				await this.plugin.saveSettings();
+				this.display();
+
+				dispatchEvent(new Event("painter:refreshstyles"));
+			});
+
 
 		const combinedColor = () => {
 			let hex = colorValueInput.getValue() || defaultColor;
@@ -157,59 +208,9 @@ export class HighlightrSettingTab extends PluginSettingTab {
 			colPreviewEl.style.backgroundColor = combinedColor()
 		}
 
-		highlighterSetting
-			.addColorPicker((picker: ColorComponent & { colorPickerEl: HTMLInputElement }) => {
-				picker.setValue(defaultColor)
-				picker.colorPickerEl.addEventListener('input', (e) => {
-					if (e.target === null) return;
-					const et = e.target as HTMLInputElement
-					colorValueInput.setValue(et.value)
-					updateColPreview()
-				})
-			})
-			.addSlider(slider => {
-				slider.setLimits(0, 100, 1)
-				slider.setValue(255)
-				slider.sliderEl.title = 'Alpha / opacity'
-				slider.onChange(val => {
-					slider.showTooltip()
-					const val255 = Math.round((val / 100) * 255)
-					colorAlphaInput.setValue(numToHexSuffix(val255))
-					updateColPreview()
-				})
-			})
-			.addButton(button => {
-				button.setClass('painter-plugin-color-preview')
-				colPreviewEl = button.buttonEl.createDiv('div')
-				colPreviewEl.addClass('painter-plugin-color-preview2')
-			})
-			.addButton(button => {
-				button
-					.setClass("painter-plugin-settings-button")
-					.setClass("painter-plugin-settings-button-add")
-					.setIcon("save")
-					.setTooltip("Save")
-					.onClick(async () => {
-						let colorName = colorNameInput.getValue().replace(" ", "-");
-						let colorValue = colorValueInput.getValue();
-
-						if (colorName.length > 50) colorName = colorName.slice(0, 51)
-						if (!colorName) { new Notice("Painter: Color name missing"); return; }
-						if (!colorValue) { new Notice("Painter: HEX code missing"); return; }
-						if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
-						if (this.plugin.settings.highlighterOrder.includes(colorName)) { 
-							new Notice(`Painter: Color '${colorName}' already exists`); 
-							return; 
-						}
-
-						this.plugin.settings.highlighterOrder.push(colorName);
-						this.plugin.settings.highlighters[colorName] = combinedColor();
-						await this.plugin.saveSettings();
-						this.display();
-
-						dispatchEvent(new Event("painter:refreshstyles"));
-					});
-			})
+		// TODO two-way binding
+		// extract & also call when editing
+		colorValueInput.inputEl.addEventListener('input', (e) => { console.log(e) })
 
 		updateColPreview()
 		const highlightersContainer = containerEl.createEl("div", {
@@ -227,16 +228,19 @@ export class HighlightrSettingTab extends PluginSettingTab {
 				.setClass("painter-plugin-color-setting-item")
 				.setName(highlighter)
 				.setDesc(this.plugin.settings.highlighters[highlighter])
-				// .addButton(button => {
-				// 	button
-				// 		.setClass('painter-plugin-settings-button')
-				// 		.setClass('painter-plugin-settings-button-edit')
-				// 		.setTooltip('edit')
-				// 		.setIcon('wrench')
-				// 		.onClick( () => {
-
-				// 		})
-				// })
+				.addButton(button => {
+					button
+						.setClass('painter-plugin-settings-button')
+						.setClass('painter-plugin-settings-button-edit')
+						.setTooltip('edit')
+						.setIcon('wrench')
+						.onClick(() => {
+							const colorVal = this.plugin.settings.highlighters[highlighter]
+							colorNameInput.setValue(highlighter)
+							colorValueInput.setValue(colorVal.slice(0,7))
+							colorAlphaInput.setValue(colorVal.slice(7, 9) || 'ff')
+						})
+				})
 				.addButton((button) => {
 					button
 						.setClass("painter-plugin-settings-button")
