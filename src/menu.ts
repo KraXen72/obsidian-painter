@@ -18,8 +18,7 @@ const highlighterMenu = (
 		return;
 	}
 	const cursor = editor.getCursor("from");
-	let coords: Coords;
-
+	
 	const menu = new Menu() as EnhancedMenu;
 	menu.dom.addClass("painter-plugin-menu-container");
 	if (settings.menuMode === 'minimal') menu.dom.addClass('minimal'); 
@@ -40,15 +39,20 @@ const highlighterMenu = (
 			item.onClick(() => clearColorFn(editor))
 		})
 	}
+	
+	const offset = editor.posToOffset(cursor)
+	let coords: Coords = editor.cm.coordsAtPos(offset)
 
-	if (editor.cursorCoords) {
-		coords = editor.cursorCoords(true, "window");
-	} else if (editor.coordsAtPos) {
-		const offset = editor.posToOffset(cursor);
-		coords = editor.cm.coordsAtPos?.(offset) ?? editor.coordsAtPos(offset);
-	} else {
-		return;
-	}
+	// FIXME doesen't properly render the menu in a table editor
+	// i *think* the highlighting works though if done through command? test it
+	// if (coords === null && editor.editorComponent.tableCell !== null) {
+	// 	console.log('tc', editor.cursorCoords, editor.cm.cursorCoords())
+
+	// 	const tableCursor = editor.editorComponent.tableCell.getCursor('from')
+	// 	const tableOffset = editor.editorComponent.tableCell.posToOffset(tableCursor)
+	// 	coords = editor.editorComponent.tableCell.cm.coordsAtPos(tableOffset)
+	// }
+	
 
 	menu.showAtPosition({
 		x: coords.right + 25,

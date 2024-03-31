@@ -142,9 +142,9 @@ export default class HighlightrPlugin extends Plugin {
 
 				// console.log(editor.setCursor)
 				// console.table(command)
-				// console.table({ selectedText, cursorStart, cursorEnd, cursorPos, prefix, prefixStart, suffix, suffixEnd, pre, suf })
-
+				console.table({ selectedText, cursorStart, cursorEnd, cursorPos, prefix, prefixStart, suffix, suffixEnd, pre, suf })
 				if (suf === suffix.trimEnd() && (preLast === prefixLast && selectedText)) {
+					console.log('replacing range')
 					editor.replaceRange(selectedText, prefixStart, suffixEnd);
 					return changeCursor(-1);
 				}
