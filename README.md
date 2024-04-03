@@ -27,6 +27,12 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - added `Clear color` (formerly remove higlight) to the menu as well
 - added better dynamic highligt preview in settings (for now uses innerHTML, will be changed later.)
 
+## Credits
+- [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license
+  - for most of the original source code (most has been rewritten)
+- [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys) released under [MIT](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/blob/master/LICENSE) license 
+  - for some text modification logic
+
 ## TODO before release on Plugin Store
 - [ ] two way binding for color inputs (editing input box updates color picker/slider)
 - [x] fullly replace remaining innerHTML calls
@@ -36,3 +42,9 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - [ ] auto-generated classnames (maybe)
 - [ ] replace remaining mentions of highlightr in code except for injected classnames
   - to be compatible with previously-highlighted notes by highlightr
+  
+## What this plugin doesen't try to be
+This plugin is for coloring/highlighting text.  
+It doesen't try to provide a comprehensive formatting toolbar/experience. 
+Out of scope: [Modal highlighting (highlighting brushes)](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/82)  
+Use this: [obsidian-editing-toolbar](https://github.com/PKM-er/obsidian-editing-toolbar)  
