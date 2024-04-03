@@ -249,10 +249,8 @@ class TextTransformer {
 		});
 		return pos;
 	}
-	
-
 	async expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
-		function applyMarkup(frontMarkup: string, endMarkup: string, preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string ) {
+		function applyMarkup(preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string ) {
 			let selectedText = this.editor.getSelection();
 			const so = this.startOffset();
 			let eo = this.endOffset();
@@ -316,7 +314,7 @@ class TextTransformer {
 			}
 	
 			// do Markup
-			if (!markupOutsideMultiline(selAnchor, selHead)) {
+			if (!this.markupOutsideMultiline(selAnchor, selHead)) {
 				editor.setSelection(selAnchor);
 				editor.replaceSelection(frontMarkup + "\n");
 				selHead.line++; // extra line to account for shift from inserting frontMarkup
@@ -332,9 +330,9 @@ class TextTransformer {
 			}
 	
 			// undo Block Markup
-			if (markupOutsideMultiline(selAnchor, selHead)) {
-				deleteLine(selAnchor.line - 1);
-				deleteLine(selHead.line); // not "+1" due to shift from previous line deletion
+			if (this.markupOutsideMultiline(selAnchor, selHead)) {
+				this.deleteLine(selAnchor.line - 1);
+				this.deleteLine(selHead.line); // not "+1" due to shift from previous line deletion
 			}
 		}
 	
@@ -378,22 +376,22 @@ class TextTransformer {
 		// sets markup for each cursor/selection
 		allCursors.forEach(sel => {
 			// account for shifts in Editor Positions due to applying markup to previous cursors
-			sel.anchor = this.recalibratePos(sel.anchor);
-			sel.head = this.recalibratePos(sel.head);
+			sel.anchor = this.recalibratePos(contentChangeList, sel.anchor);
+			sel.head = this.recalibratePos(contentChangeList, sel.head);
 			editor.setSelection(sel.anchor, sel.head);
 	
 			// prevent things like triple-click selection from triggering multi-line
-			this.trimSelection();
+			this.trimSelection(frontMarkup, endMarkup);
 	
 			// run special cases instead
 			if (!this.multiLineSel()) { // wrap single line selection
 				console.log("single line");
-				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection();
-				this.applyMarkup(preSelExpAnchor, preSelExpHead, "single");
-			}	else if (this.multiLineSel() && this.isMultiLineMarkup()) { // Wrap multi-line selection
+				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup);
+				applyMarkup(preSelExpAnchor, preSelExpHead, "single");
+			}	else if (this.multiLineSel() && this.isMultiLineMarkup(frontMarkup)) { // Wrap multi-line selection
 				console.log("Multiline Wrap");
-				this.wrapMultiLine();
-			}	else if (this.multiLineSel() && !this.isMultiLineMarkup()) { // Wrap *each* line of multi-line selection
+				wrapMultiLine();
+			}	else if (this.multiLineSel() && !this.isMultiLineMarkup(frontMarkup)) { // Wrap *each* line of multi-line selection
 				let pointerOff = this.startOffset();
 				const lines = editor.getSelection().split("\n");
 				console.log("lines: " + lines.length.toString());
@@ -403,14 +401,14 @@ class TextTransformer {
 					console.log("");
 					editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
 	
-					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection();
+					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup);
 	
 					// Move Pointer to next line
 					pointerOff += line.length + 1; // +1 to account for line break
-					if (this.markupOutsideSel()) pointerOff -= blen + alen; // account for removed markup
+					if (this.markupOutsideSel(frontMarkup, endMarkup)) pointerOff -= blen + alen; // account for removed markup
 					else pointerOff += blen + alen; // account for added markup
 	
-					this.applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
+					applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
 				});
 			}
 		});
