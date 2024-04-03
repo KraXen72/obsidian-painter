@@ -5,7 +5,7 @@ import type { EditorPosition, EditorSelection } from "obsidian";
 // TODO replace with something else?
 const URL_REGEX = /^((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()[\]{};:'".,<>?«»“”‘’]))$/i;
 
-const TRIMBEFORE = [ "\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t" ];
+const TRIMBEFORE = ["\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t"];
 
 // TODO cleanup
 
@@ -35,7 +35,7 @@ const EXPANDWHENOUTSIDE = [
 	["[", "] ", "trim_last_space"] // md link exception
 ];
 
-const IMAGEEXTENSIONS = [ "png", "jpg", "jpeg", "gif", "tiff" ];
+const IMAGEEXTENSIONS = ["png", "jpg", "jpeg", "gif", "tiff"];
 
 // needed for Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
 const posEqual = (a: EditorPosition, b: EditorPosition) => a.line === b.line && a.ch === b.ch;
@@ -44,7 +44,7 @@ const rangeEqual = (a: EditorSelection, b: EditorSelection) => posEqual(a.anchor
 type nudgeOpts = { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
 const nudgeDefaults = { ch: 0, ln: 0, cursor: 'from' } as const
 
-export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults ) {
+export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults) {
 	const opts2 = Object.assign(nudgeDefaults, opts)
 	const prevPos = editor.getCursor('to')
 	prevPos.ch += opts2.ch
@@ -67,7 +67,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		if (offset > noteLength()) offset = noteLength();
 		return editor.offsetToPos(offset);
 	};
-	function isOutsideSel (bef:string, aft:string) {
+	function isOutsideSel(bef: string, aft: string) {
 		const so = startOffset();
 		const eo = endOffset();
 
@@ -80,8 +80,8 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 	}
 
 	const isMultiLineMarkup = () => ["`", "%%", "<!--", "$"].includes(frontMarkup);
-	const markupOutsideSel = () => isOutsideSel (frontMarkup, endMarkup);
-	function markupOutsideMultiline (anchor: EditorPosition, head: EditorPosition) {
+	const markupOutsideSel = () => isOutsideSel(frontMarkup, endMarkup);
+	function markupOutsideMultiline(anchor: EditorPosition, head: EditorPosition) {
 		if (anchor.line === 0) return false;
 		if (head.line === editor.lastLine()) return false;
 
@@ -109,7 +109,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 
 	// Core Functions
 	//-------------------------------------------------------------------
-	function textUnderCursor (ep: EditorPosition) {
+	function textUnderCursor(ep: EditorPosition) {
 
 		// prevent underscores (wrongly counted as words) to be expanded to
 		if (markupOutsideSel() && noSel()) return { anchor: ep, head: ep };
@@ -124,7 +124,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			// TODO: update for mobile https://github.com/obsidianmd/obsidian-releases/pull/712#issuecomment-1004417481
 			if (editor.cm instanceof window.CodeMirror) return editor.cm.findWordAt(ep); // CM5
 
-			const word = editor.cm.state.wordAt(editor.posToOffset (ep)); // CM6
+			const word = editor.cm.state.wordAt(editor.posToOffset(ep)); // CM6
 			if (!word) return { anchor: ep, head: ep }; // for when there is no word close by
 
 			startPos = offToPos(word.from);
@@ -133,27 +133,27 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 
 		// Inline-Code: use only space as delimiter
 		if (frontMarkup === "`" || frontMarkup === "$") {
-			console.log ("Getting Code under Cursor");
+			console.log("Getting Code under Cursor");
 			const so = editor.posToOffset(ep);
 			let charAfter, charBefore;
 			let [i, j, endReached, startReached] = [0, 0, false, false];
 
 			// @ts-ignore
 			while (!/\s/.test(charBefore) && !startReached) {
-				charBefore = editor.getRange(offToPos(so - (i+1)), offToPos(so - i));
+				charBefore = editor.getRange(offToPos(so - (i + 1)), offToPos(so - i));
 				i++;
-				if (so-(i-1) === 0) startReached = true;
+				if (so - (i - 1) === 0) startReached = true;
 			}
 
 			// @ts-ignore
 			while (!/\s/.test(charAfter) && !endReached) {
-				charAfter = editor.getRange(offToPos(so + j), offToPos(so + j+1));
+				charAfter = editor.getRange(offToPos(so + j), offToPos(so + j + 1));
 				j++;
-				if (so+(j-1) === noteLength()) endReached = true;
+				if (so + (j - 1) === noteLength()) endReached = true;
 			}
 
-			startPos = offToPos(so - (i-1));
-			endPos = offToPos(so + (j-1));
+			startPos = offToPos(so - (i - 1));
+			endPos = offToPos(so + (j - 1));
 		}
 
 		return { anchor: startPos, head: endPos };
@@ -174,7 +174,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 
 		let selection = editor.getSelection();
 		let so = startOffset();
-		console.log ("before trim", true);
+		console.log("before trim", true);
 
 		// before
 		let trimFinished = false;
@@ -207,10 +207,10 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		if (blockID) selection = selection.slice(0, -blockID[0].length);
 
 		editor.setSelection(offToPos(so), offToPos(so + selection.length));
-		console.log ("after trim", true);
+		console.log("after trim", true);
 	}
 
-	function expandSelection () {
+	function expandSelection() {
 		trimSelection();
 		console.log("before expandSelection", true);
 
@@ -222,7 +222,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		let lastWordRange = textUnderCursor(preSelExpHead) as CodeMirror.Range;
 
 		// Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
-		if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0 ) {
+		if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0) {
 			const lastWordRangeInner = textUnderCursor({
 				...preSelExpHead,
 				ch: preSelExpHead.ch - 1,
@@ -233,16 +233,16 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		}
 
 		editor.setSelection(firstWordRange.anchor, lastWordRange.head);
-		console.log ("after expandSelection", true);
+		console.log("after expandSelection", true);
 		trimSelection();
 
 		// has to come after trimming to include things like brackets
 		const expandWhenOutside = EXPANDWHENOUTSIDE;
 		expandWhenOutside.forEach(pair => {
-			if (pair[0] === frontMarkup || pair[1] === endMarkup ) return; // allow undoing of the command creating the syntax
+			if (pair[0] === frontMarkup || pair[1] === endMarkup) return; // allow undoing of the command creating the syntax
 			const trimLastSpace = Boolean(pair[2]);
 
-			if (isOutsideSel (pair[0], pair[1])) {
+			if (isOutsideSel(pair[0], pair[1])) {
 				firstWordRange.anchor.ch -= pair[0].length;
 				lastWordRange.head.ch += pair[1].length;
 				if (trimLastSpace) lastWordRange.head.ch--; // to avoid conflicts between trimming and expansion
@@ -254,14 +254,14 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		return { anchor: preSelExpAnchor, head: preSelExpHead };
 	}
 
-	function recalibratePos (pos: EditorPosition) {
-		contentChangeList.forEach (change => {
+	function recalibratePos(pos: EditorPosition) {
+		contentChangeList.forEach(change => {
 			if (pos.line === change.line) pos.ch += change.shift;
 		});
 		return pos;
 	}
 
-	function applyMarkup (preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string ) {
+	function applyMarkup(preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string) {
 		let selectedText = editor.getSelection();
 		const so = startOffset();
 		let eo = endOffset();
@@ -347,7 +347,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		}
 	}
 
-	async function insertURLtoMDLink () {
+	async function insertURLtoMDLink() {
 		const URLregex = URL_REGEX;
 		const cbText = (await navigator.clipboard.readText()).trim();
 
@@ -361,28 +361,28 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		return [frontMarkup_, endMarkup_];
 	}
 
-	function	smartDelete() {
+	function smartDelete() {
 		// expand selection to prevent double spaces after deletion
 		if (isOutsideSel(" ", "")) {
 			const anchor = editor.getCursor("from");
 			const head = editor.getCursor("to");
 			if (anchor.ch) anchor.ch--; // do not apply to first line position
-			editor.setSelection (anchor, head);
+			editor.setSelection(anchor, head);
 		}
 
 		// delete
-		editor.replaceSelection ("");
+		editor.replaceSelection("");
 	}
 
-	function	smartCaseSwitch(preAnchor: EditorPosition, preHead: EditorPosition) {
-		function sentenceCase (str: string) {
+	function smartCaseSwitch(preAnchor: EditorPosition, preHead: EditorPosition) {
+		function sentenceCase(str: string) {
 			// Move i to index of first letter (using this trick: https://stackoverflow.com/a/32567789)
 			let i = 0;
 			while (str.charAt(i).toLowerCase() === str.charAt(i).toUpperCase()) {
 				i++;
 				if (i > str.length) break;
 			}
-			return str.charAt(i).toUpperCase() + str.slice(i+1).toLowerCase();
+			return str.charAt(i).toUpperCase() + str.slice(i + 1).toLowerCase();
 		}
 
 		let sel = editor.getSelection();
@@ -393,22 +393,22 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		else if (sel === sel.toUpperCase()) sel = sel.toLowerCase();
 		else sel = sentenceCase(sel);
 
-		editor.replaceSelection (sel);
+		editor.replaceSelection(sel);
 		editor.setSelection(preAnchor, preHead);
 	}
 
 	// required to not apply some changes at the end of the function
 	let doIt = true;
 	// new parameters, line number et column from the loop before on multilines
-	function smartHeading(direction: string,lineNumber=0,column=0) {
+	function smartHeading(direction: string, lineNumber = 0, column = 0) {
 		// used later to check if we are multilines. if so lineNumb is defined
-		const multiLines = Boolean(lineNumber);      
-				// if single line get variable else we already have them 
+		const multiLines = Boolean(lineNumber);
+		// if single line get variable else we already have them 
 		if (lineNumber === 0) {
 			lineNumber = editor.getCursor("head").line;
 			column = editor.getCursor("head").ch;
 		}
-		
+
 		const lineContent = editor.getLine(lineNumber);
 		const hasHeading = lineContent.match(/^#{1,6}(?= )/);
 		let currentHeadingLvl;
@@ -416,12 +416,12 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		let newColumn;
 
 		if (direction === "increase" && hasHeading) {
-					currentHeadingLvl = hasHeading[0];
-					// else if header >6 and not mutiline,ok. else multiline don't doIt  
+			currentHeadingLvl = hasHeading[0];
+			// else if header >6 and not mutiline,ok. else multiline don't doIt  
 			if (currentHeadingLvl.length < 6) {
 				newLineContent = "#" + lineContent;
 				newColumn = column + 1;
-			} else if (multiLines===false) {
+			} else if (multiLines === false) {
 				newLineContent = lineContent.slice(7);
 				if (column > 6) newColumn = column - 7;
 				else newColumn = 0;
@@ -431,7 +431,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			newColumn = column + 2;
 		} else if (direction === "decrease" && hasHeading) {
 			currentHeadingLvl = hasHeading[0];
-					// same with decrease
+			// same with decrease
 			if (currentHeadingLvl.length > 1) {
 				newLineContent = lineContent.slice(1);
 				newColumn = column - 1;
@@ -443,7 +443,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			newLineContent = "###### " + lineContent;
 			newColumn = column + 7;
 		}
-				// if doIt we can do this
+		// if doIt we can do this
 		if (doIt && newLineContent) {
 			editor.setLine(lineNumber, newLineContent);
 			editor.setCursor(lineNumber, newColumn);
@@ -476,8 +476,8 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 	// sets markup for each cursor/selection
 	allCursors.forEach(sel => {
 		// account for shifts in Editor Positions due to applying markup to previous cursors
-		sel.anchor = recalibratePos (sel.anchor);
-		sel.head = recalibratePos (sel.head);
+		sel.anchor = recalibratePos(sel.anchor);
+		sel.head = recalibratePos(sel.head);
 		editor.setSelection(sel.anchor, sel.head);
 
 		// prevent things like triple-click selection from triggering multi-line
@@ -485,59 +485,59 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 
 		// run special cases instead
 		if (frontMarkup === "delete") {
-			console.log ("Smart Delete");
+			console.log("Smart Delete");
 			expandSelection();
 			smartDelete();
 		}
 		else if (frontMarkup === "case-switch") {
-			console.log ("Smart Case Switch");
+			console.log("Smart Case Switch");
 			const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
 			smartCaseSwitch(preSelExpAnchor, preSelExpHead);
 		} else if (frontMarkup === "heading") {
 			console.log("Smart Toggle Heading");
-					// get selection range and check if several lines
+			// get selection range and check if several lines
 			const selected = editor.getSelection();
 			if (selected && selected.includes("\n")) {
 				const { line: from, ch: col0 } = editor.getCursor("from");
 				const { line: to, ch: col1 } = editor.getCursor("to");
-							// for each line in range if header apply smartHeading
+				// for each line in range if header apply smartHeading
 				Array.from({ length: to - from + 1 }, (x, i) => {
 					const lineNumber = from + i;
 					const lineContent = editor.getLine(from + i);
 					if (lineContent.match(/^#{1,6}(?= )/)) {
 						smartHeading(endMarkup, lineNumber, col1);
-										// keep selection on each loop
+						// keep selection on each loop
 						editor.setSelection(
 							{ line: from, ch: col0 },
 							{ line: to, ch: col1 }
 						);
 					}
 				});
-						// 1 line smartHeading
-			} else 
+				// 1 line smartHeading
+			} else
 				smartHeading(endMarkup);
-			
+
 		}
 
-		
+
 		else if (!multiLineSel()) { // wrap single line selection
-			console.log ("single line");
+			console.log("single line");
 			const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
 			applyMarkup(preSelExpAnchor, preSelExpHead, "single");
 		}
 		// Wrap multi-line selection
 		else if (multiLineSel() && isMultiLineMarkup()) {
-			console.log ("Multiline Wrap");
+			console.log("Multiline Wrap");
 			wrapMultiLine();
 		}
 		// Wrap *each* line of multi-line selection
 		else if (multiLineSel() && !isMultiLineMarkup()) {
 			let pointerOff = startOffset();
 			const lines = editor.getSelection().split("\n");
-			console.log ("lines: " + lines.length.toString());
+			console.log("lines: " + lines.length.toString());
 
 			// get offsets for each line and apply markup to each
-			lines.forEach (line => {
+			lines.forEach(line => {
 				console.log("");
 				editor.setSelection(offToPos(pointerOff), offToPos(pointerOff + line.length));
 
@@ -545,7 +545,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 
 				// Move Pointer to next line
 				pointerOff += line.length + 1; // +1 to account for line break
-				if (markupOutsideSel()) pointerOff-= blen + alen; // account for removed markup
+				if (markupOutsideSel()) pointerOff -= blen + alen; // account for removed markup
 				else pointerOff += blen + alen; // account for added markup
 
 				applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
