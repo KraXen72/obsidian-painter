@@ -105,7 +105,10 @@ export default class Painter extends Plugin {
 		// 	editor.setSelection(anchor, head)
 		// }
 		transformer.trimSelection(prefix, suffix)
-		transformer.wrapSelection(prefix, suffix, { expand: editor.getSelection().length === 0, moveCursorToEnd: true } )
+		transformer.wrapSelection(prefix, suffix, { 
+			expand: editor.getSelection().length === 0,
+			moveCursorToEnd: true 
+		})
 
 		// editor.replaceSelection(`${prefix}${editor.getSelection()}${suffix}`);
 		// nudgeCursor(editor, { ch: 1 })

@@ -270,7 +270,7 @@ export class TextTransformer {
 	}
 	async wrapSelection(frontMarkup: string, endMarkup: string, opts: wrapOpts) {
 		const opts2 = Object.assign(wrapDefaults, opts)
-		const applyMarkup = (preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string) => {
+		const applyMarkup = (preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string, cleanupSel = true) => {
 			let selectedText = this.editor.getSelection();
 			const so = this.startOffset();
 			let eo = this.endOffset();
@@ -285,33 +285,39 @@ export class TextTransformer {
 					selectedText = " " + selectedText + " ";
 					// account for shift in positining for the cursor repositioning
 					eo = eo + 2;
-					blen++;
-					alen++;
+					pre_len++;
+					suf_len++;
 				}
 				this.editor.replaceSelection(frontMarkup + selectedText + endMarkup);
 	
 				contentChangeList.push(
-					{ line: preAnchor.line, shift: blen },
-					{ line: preHead.line, shift: alen }
+					{ line: preAnchor.line, shift: pre_len },
+					{ line: preHead.line, shift: suf_len }
 				);
-				preAnchor.ch += blen;
-				preHead.ch += blen;
+				preAnchor.ch += pre_len;
+				preHead.ch += pre_len;
 			}
 	
 			// Undo Markup (outside selection, inside not necessary as trimmed already)
 			if (this.markupOutsideSel(frontMarkup, endMarkup)) {
-				this.editor.setSelection(this.offToPos(so - blen), this.offToPos(eo + alen));
+				this.editor.setSelection(this.offToPos(so - pre_len), this.offToPos(eo + suf_len));
 				this.editor.replaceSelection(selectedText);
 	
 				contentChangeList.push(
-					{ line: preAnchor.line, shift: -blen },
-					{ line: preHead.line, shift: -alen }
+					{ line: preAnchor.line, shift: -pre_len },
+					{ line: preHead.line, shift: -suf_len }
 				);
-				preAnchor.ch -= blen;
-				preHead.ch -= blen;
+				preAnchor.ch -= pre_len;
+				preHead.ch -= pre_len;
 			}
 	
-			if (lineMode === "single") this.editor.setSelection(preAnchor, preHead);
+			if (lineMode === "single") {
+				if (opts2.moveCursorToEnd) {
+					nudgeCursor(this.editor, { ch: 1 })
+				} else {
+					this.editor.setSelection(preAnchor, preHead);
+				}
+			}
 		}
 
 		function wrapMultiLine() {
@@ -323,13 +329,13 @@ export class TextTransformer {
 			if (frontMarkup === "`") { // switch to fenced code instead of inline code
 				frontMarkup = "```";
 				endMarkup = "```";
-				alen = 3;
-				blen = 3;
+				suf_len = 3;
+				pre_len = 3;
 			} else if (frontMarkup === "$") { // switch to block mathjax syntax instead of inline mathjax
 				frontMarkup = "$$";
 				endMarkup = "$$";
-				alen = 2;
-				blen = 2;
+				suf_len = 2;
+				pre_len = 2;
 			}
 	
 			// do Markup
@@ -381,8 +387,8 @@ export class TextTransformer {
 	
 		// eslint-disable-next-line require-atomic-updates
 		if (endMarkup === "]()") [frontMarkup, endMarkup] = await insertURLtoMDLink();
-		let blen = frontMarkup.length;
-		let alen = endMarkup.length;
+		let pre_len = frontMarkup.length;
+		let suf_len = endMarkup.length;
 	
 		// saves the amount of position shift for each line
 		// used to calculate correct positions for multi-cursor
@@ -420,9 +426,9 @@ export class TextTransformer {
 					// Move Pointer to next line
 					pointerOff += line.length + 1; // +1 to account for line break
 					if (this.markupOutsideSel(frontMarkup, endMarkup)) {
-						pointerOff -= blen + alen; // account for removed markup
+						pointerOff -= pre_len + suf_len; // account for removed markup
 					} else {
-						pointerOff += blen + alen; // account for added markup
+						pointerOff += pre_len + suf_len; // account for added markup
 					};
 	
 					applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
