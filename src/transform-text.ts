@@ -63,7 +63,7 @@ interface contentChange {
 	shift: number;
 }
 
-export class TextTransformer {
+export default class TextTransformer {
 	editor: EnhancedEditor
 	constructor(editor: EnhancedEditor) {
 		this.editor = editor

@@ -4,11 +4,11 @@ import type { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
 
 import { PainterSettingTab } from "./settings/settings-tabs";
 import DEFAULT_SETTINGS, { HIGHLIGHTER_STYLES, HighlightrSettings } from "./settings/settings-data";
-import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
+import contextMenu from "./context-menu";
 import { createHighlighterIcons } from "./custom-icons";
 import { createStyles, removeStyles } from "./utils/create-style";
-import { TextTransformer } from "./transform-text";
+import TextTransformer from "./transform-text";
 
 type CommandPlot = {
 	char: number;
