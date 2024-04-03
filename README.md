@@ -17,7 +17,10 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
   - **Auto-select word:** "hello t`|`here world!" => "hello `there` world!"
   - **Trim selection to nearest word:** "what` is` up?" => "what `is` up?"
   - You are still able to paint a certain part of a word: "h`ell`o" => "h`ell`o"
-- Added `Clear` (formerly `Remove higlight`) to the menu as well
+- Better `Clear` (formerly `Remove higlight`) command
+  - Added it to the highlighting menu as well	
+  - In settings, you can configure custom CSS selectors to remove alongside any `mark` elements
+  - Replaced regex-based approach with a `DOMParser`
 - New svg icon (modified lucide highlighter icon)
 - Added dynamic highlight preview in settings (shows with your colors)
   
@@ -25,7 +28,6 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - [Works in Obsidian's Table editor](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/90)
 - [Removed extra spaces after marks](https://github.com/chetachiezikeuzor/Highlightr-Plugin/pull/40)
 - Highlightr styles now use css variables instead of hardcoded values
-- Replaced regex-based eraseHighlight with a `DOMParser` approach
   
 ### Other
 - Cleaned up file structure & move to esbuild instead of rollupk
