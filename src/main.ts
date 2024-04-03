@@ -77,6 +77,9 @@ export default class Painter extends Plugin {
 		const oldHead = editor.getCursor('head')
 		const currentStr = editor.getSelection();
 		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
+
+		// this function introduces some wierdness when trying to clean stuff it doesen't need to
+		// better to skip cleaning entirely if unneeded
 		let canSkip = true
 		for (const sel of selectors) {
 			if (sandbox.querySelectorAll(sel).length > 0) {
