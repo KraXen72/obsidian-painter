@@ -26,17 +26,17 @@
 
 /* none */
 .highlightr-none mark:not(.style-demo),
+.highlightr-none .markdown-preview-view :is(mark[class], mark[style]):not(.style-demo),
 .highlightr-none > mark.style-demo,
-.highlightr-none span.cm-highlight,
-.highlightr-none .markdown-preview-view mark {
+.highlightr-none span.cm-highlight {
 	background-color: var(--hltr-color);
 }
 
 /* text-color */
 .highlightr-text-color mark:not(.style-demo),
+.highlightr-text-color .markdown-preview-view :is(mark[class], mark[style]):not(.style-demo),
 .highlightr-text-color > mark.style-demo,
-.highlightr-text-color span.cm-highlight,
-.highlightr-text-color .markdown-preview-view mark {
+.highlightr-text-color span.cm-highlight {
 	color: var(--hltr-color);
 	background: transparent;
 	border-radius: 0;
@@ -45,9 +45,9 @@
 
 /*lowlight*/
 .highlightr-lowlight mark:not(.style-demo),
+.highlightr-lowlight .markdown-preview-view :is(mark[class], mark[style]):not(.style-demo),
 .highlightr-lowlight > mark.style-demo,
-.highlightr-lowlight span.cm-highlight,
-.highlightr-lowlight .markdown-preview-view mark {
+.highlightr-lowlight span.cm-highlight {
 	color: var(--text-normal, inherit);
 	background-color: var(--hltr-color);
 	--lowlight-background: var(--background-primary);
@@ -74,9 +74,9 @@
 
 /*floating*/
 .highlightr-floating mark:not(.style-demo),
+.highlightr-floating .markdown-preview-view :is(mark[class], mark[style]):not(.style-demo),
 .highlightr-floating > mark.style-demo,
-.highlightr-floating span.cm-highlight,
-.highlightr-floating .markdown-preview-view mark {
+.highlightr-floating span.cm-highlight {
 	color: var(--text-normal, inherit);
 	background-color: var(--hltr-color);
 	--floating-background: var(--background-primary);
@@ -104,8 +104,8 @@
 
 /*rounded*/
 .highlightr-rounded mark:not(.style-demo),
-.highlightr-rounded > mark.style-demo,
-.highlightr-rounded .markdown-preview-view mark {
+.highlightr-rounded .markdown-preview-view :is(mark[class], mark[style]):not(.style-demo),
+.highlightr-rounded > mark.style-demo {
 	color: var(--text-normal, inherit);
 	background-color: var(--hltr-color);
 	margin: 0 -0.05em;
@@ -134,8 +134,8 @@
 
 /*realistic*/
 .highlightr-realistic mark:not(.style-demo),
-.highlightr-realistic > mark.style-demo,
-.highlightr-realistic .markdown-preview-view mark {
+.highlightr-realistic .markdown-preview-view :is(mark[class], mark[style]):not(.style-demo),
+.highlightr-realistic > mark.style-demo {
 	color: var(--text-normal, inherit);
 	background-color: var(--hltr-color);
 	margin: 0 -0.05em;

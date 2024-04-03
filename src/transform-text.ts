@@ -7,6 +7,8 @@ const URL_REGEX = /^((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.
 
 const TRIMBEFORE = [ "\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t" ];
 
+// TODO cleanup
+
 const TRIMAFTER = [
 	"\"",
 	")",
@@ -45,8 +47,6 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		shift: number;
 	}
 
-	// Utility Functions TODO: export these to an `utils.ts`
-	//-------------------------------------------------------------------
 	const startOffset = () => editor.posToOffset(editor.getCursor("from"));
 	const endOffset = () => editor.posToOffset(editor.getCursor("to"));
 	const noteLength = () => editor.getValue().length;
