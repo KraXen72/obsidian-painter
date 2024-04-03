@@ -95,6 +95,7 @@ export class TextTransformer {
 		const followLineContent = this.editor.getLine(head.line + 1);
 		return prevLineContent.startsWith(frontMarkup) && followLineContent.startsWith(endMarkup);
 	}
+	getSel() { return { anchor: this.editor.getCursor("anchor"), head: this.editor.getCursor("head") } }
 	noSel() { return !this.editor.somethingSelected() }
 	multiLineSel() { return this.editor.getSelection().includes("\n") }
 	deleteLine(lineNo: number) {
@@ -264,7 +265,7 @@ export class TextTransformer {
 		}
 		return pos;
 	}
-	async expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
+	async wrapSelection(frontMarkup: string, endMarkup: string, editor: EnhancedEditor, expand = true) {
 		function applyMarkup(preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string ) {
 			let selectedText = this.editor.getSelection();
 			const so = this.startOffset();
@@ -396,7 +397,9 @@ export class TextTransformer {
 	
 			// run special cases instead
 			if (!this.multiLineSel()) { // wrap single line selection
-				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup, false)!;
+				const { anchor: preSelExpAnchor, head: preSelExpHead } = expand 
+					? this.expandSelection(frontMarkup, endMarkup, false)!
+					: this.getSel();
 				applyMarkup(preSelExpAnchor, preSelExpHead, "single");
 			}	else if (this.multiLineSel() && this.isMultiLineMarkup(frontMarkup)) { // Wrap multi-line selection
 				wrapMultiLine();
@@ -406,7 +409,9 @@ export class TextTransformer {
 				// get offsets for each line and apply markup to each
 				for (const line of lines) {
 					editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
-					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup, false)!;
+					const { anchor: preSelExpAnchor, head: preSelExpHead } = expand
+						? this.expandSelection(frontMarkup, endMarkup, false)!
+						: this.getSel();
 	
 					// Move Pointer to next line
 					pointerOff += line.length + 1; // +1 to account for line break
