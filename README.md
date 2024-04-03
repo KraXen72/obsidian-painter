@@ -24,9 +24,10 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - New svg icon (modified lucide highlighter icon)
 - Added dynamic highlight preview in settings (shows with your colors)
   
-### Fixed
+### Fixes
 - [Works in Obsidian's Table editor](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/90)
 - [Removed extra spaces after marks](https://github.com/chetachiezikeuzor/Highlightr-Plugin/pull/40)
+- Allows overwriting previous highlights (setting) - similar to this [pull request](https://github.com/chetachiezikeuzor/Highlightr-Plugin/pull/63)
 - Highlightr styles now use css variables instead of hardcoded values
   
 ### Other

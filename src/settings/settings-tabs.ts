@@ -73,7 +73,7 @@ export class PainterSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Additional CSS Selectors to clear')
-			.setDesc(`The "Painter: Clear" command clears all "mark" elements from the current selection. However, you might wish to clear other elements as well. Add CSS Selectors to be cleaned here (one per line)`)
+			.setDesc(`The "Painter: Clear" command clears all "mark" elements. However, you might wish to remove other elements as well. Add CSS Selectors to be cleaned here (one per line)`)
 			.addTextArea(ta => {
 				ta.inputEl.style.resize = 'vertical'
 				ta.setValue(this.plugin.settings.cleanSelectors.join("\n"))
@@ -81,7 +81,17 @@ export class PainterSettingTab extends PluginSettingTab {
 					const selectors = val.split("\n").map(i => i.trim()).filter(i => i !== "")
 					this.plugin.settings.cleanSelectors = selectors
 					this.plugin.saveSettings();
-					this.display();
+				})
+			})
+		
+		new Setting(containerEl)
+			.setName('Overwrite previous highlights')
+			.setDesc('Normally, new highlights overwrite old ones. Turn this off to keep previous highlights when highlighting. You will have to clear highlights manually when changing their color.')
+			.addToggle(tg => {
+				tg.setValue(this.plugin.settings.overwriteMarks)
+				tg.onChange(val => {
+					this.plugin.settings.overwriteMarks = val
+					this.plugin.saveSettings()
 				})
 			})
 

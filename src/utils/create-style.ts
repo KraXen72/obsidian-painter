@@ -10,10 +10,15 @@ export function createStyles(settings: HighlightrSettings) {
 			}
 		`)
 	}
+	removeStyles()
+	document.adoptedStyleSheets.push(stylesheet)
+}
+
+export function removeStyles() {
 	for (const ss of document.adoptedStyleSheets) {
 		if (Array.from(ss.cssRules).some(rule => rule.cssText.includes('--hltr-color'))) {
 			document.adoptedStyleSheets.remove(ss)
 		}
 	}
-	document.adoptedStyleSheets.push(stylesheet)
 }
+

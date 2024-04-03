@@ -7,7 +7,7 @@ import DEFAULT_SETTINGS, { HIGHLIGHTER_STYLES, HighlightrSettings } from "./sett
 import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
 import { createHighlighterIcons } from "./custom-icons";
-import { createStyles } from "./utils/create-style";
+import { createStyles, removeStyles } from "./utils/create-style";
 import { TextTransformer, nudgeCursor } from "./transform-text";
 
 type CommandPlot = {
@@ -70,19 +70,26 @@ export default class Painter extends Plugin {
 		}
 	}
 
-	eraseHighlight(editor: Editor) {
-		// to remove any mark elements, we use DOMParser to create a sandbox
-		// then, remove any mark elements & read the result to set it back
+	clearSelectionOfSelectors(editor: Editor, selectors: string[], preserveSelection = false) {
+		// to remove unwanted elements, we use DOMParser to create a sandbox
+		// then, remove unwanted elements & read the result to set it back
 		// this is only *reading* the innerHTML, not setting it
+		const oldHead = editor.getCursor('head')
 		const currentStr = editor.getSelection();
 		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
-		for (const sel of [...this.settings.cleanSelectors, 'mark']) {
+		for (const sel of selectors) {
 			sandbox.querySelectorAll(sel).forEach(m => {
 				m.replaceWith(...Array.from(m.childNodes))
 			})
 		}
-		editor.replaceSelection(sandbox.body.innerHTML);
-		editor.focus();
+		const replacement = sandbox.body.innerHTML
+		editor.replaceSelection(replacement);
+		if (!editor.hasFocus()) editor.focus();
+		if (preserveSelection) editor.setSelection(oldHead, editor.getCursor('head'));
+	}
+	
+	eraseHighlight(editor: Editor) {
+		this.clearSelectionOfSelectors(editor, [...this.settings.cleanSelectors, 'mark'])
 	};
 
 	createPrefix(elem: string, key: string, mode: string, style: string) {
@@ -96,8 +103,9 @@ export default class Painter extends Plugin {
 	applyCommand(command: CommandPlot, editor: EnhancedEditor) {
 		const prefix = command.prefix;
 		const suffix = command.suffix || prefix;
-		const transformer = new TextTransformer(editor)
+		if (this.settings.overwriteMarks) this.clearSelectionOfSelectors(editor, ['mark'], true);
 
+		const transformer = new TextTransformer(editor)
 		transformer.trimSelection(prefix, suffix)
 		transformer.wrapSelection(prefix, suffix, { 
 			expand: editor.getSelection().length === 0,
@@ -150,6 +158,7 @@ export default class Painter extends Plugin {
 	};
 
 	onunload() {
+		removeStyles()
 		console.log("Painter unloaded");
 	}
 

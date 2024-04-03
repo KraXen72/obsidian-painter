@@ -17,12 +17,13 @@ export interface Highlighters {
 }
 
 export interface HighlightrSettings {
-	highlighterStyle: string;
-	highlighterMethods: string;
-	highlighters: Highlighters;
-	highlighterOrder: string[];
-	menuMode: 'normal' | 'minimal';
+	highlighterStyle: string
+	highlighterMethods: string
+	highlighters: Highlighters
+	highlighterOrder: string[]
+	menuMode: 'normal' | 'minimal'
 	cleanSelectors: string[]
+	overwriteMarks: boolean
 }
 
 // i'm keeping higlightr's keys so settings can be easily migrated
@@ -39,7 +40,8 @@ const DEFAULT_SETTINGS: HighlightrSettings = {
 	},
 	highlighterOrder: [],
 	menuMode: 'normal',
-	cleanSelectors: []
+	cleanSelectors: [],
+	overwriteMarks: true
 };
 
 DEFAULT_SETTINGS.highlighterOrder = Object.keys(DEFAULT_SETTINGS.highlighters);
