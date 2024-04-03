@@ -49,6 +49,10 @@ interface contentChange {
 	shift: number;
 }
 
+// TODO remove unneeded util functions
+// TODO Fix missing this.references
+// TODO make expandSelection work from outside
+
 class TextTransformer {
 	editor: EnhancedEditor
 	constructor(editor: EnhancedEditor) {
