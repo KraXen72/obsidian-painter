@@ -77,6 +77,15 @@ export default class Painter extends Plugin {
 		const oldHead = editor.getCursor('head')
 		const currentStr = editor.getSelection();
 		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
+		let canSkip = true
+		for (const sel of selectors) {
+			if (sandbox.querySelectorAll(sel).length > 0) {
+				canSkip = false
+				break;
+			}
+		}
+		if (canSkip) return;
+
 		for (const sel of selectors) {
 			sandbox.querySelectorAll(sel).forEach(m => {
 				m.replaceWith(...Array.from(m.childNodes))
