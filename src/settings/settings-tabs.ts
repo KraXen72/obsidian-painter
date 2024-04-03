@@ -11,7 +11,7 @@ import {
 	ButtonComponent,
 } from "obsidian";
 import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES } from "./settings-data";
-import { numToHexSuffix, sample } from "src/utils";
+import { hexSuffixToNum, numToHexSuffix, sample } from "src/utils";
 import { customHLIcon } from "src/custom-icons";
 import Sortable from 'sortablejs';
 
@@ -129,6 +129,11 @@ export class PainterSettingTab extends PluginSettingTab {
 		const defaultColor = "#cca9ff"
 		let colPreviewEl: HTMLDivElement | null = null;
 
+		const updateColPreview = () => {
+			if (colPreviewEl === null) return;
+			colPreviewEl.style.backgroundColor = combinedColor()
+		}
+
 		const colorNameInput = new TextComponent(addColorSetting.controlEl);
 		colorNameInput.setPlaceholder("Color name");
 		colorNameInput.inputEl.addClass("painter-plugin-settings-color");
@@ -146,8 +151,8 @@ export class PainterSettingTab extends PluginSettingTab {
 		const colorPicker = new ColorComponent(addColorSetting.controlEl) as ColorComponent & { colorPickerEl: HTMLInputElement }
 		colorPicker.setValue(defaultColor)
 		colorPicker.colorPickerEl.addEventListener('input', (e) => {
-			if (e.target === null) return;
-			const et = e.target as HTMLInputElement
+			if (e.target == null && e.currentTarget == null) return;
+			const et = (e.target || e.currentTarget) as HTMLInputElement
 			colorValueInput.setValue(et.value)
 			updateColPreview()
 		})
@@ -156,9 +161,12 @@ export class PainterSettingTab extends PluginSettingTab {
 		alphaSlider.setLimits(0, 100, 1)
 		alphaSlider.setValue(255)
 		alphaSlider.sliderEl.title = 'Alpha / opacity'
-		alphaSlider.onChange(val => {
+		alphaSlider.sliderEl.addEventListener('input', (e) => {
+			if (e.target == null && e.currentTarget == null) return;
+			const et = (e.target || e.currentTarget) as HTMLInputElement
+
 			alphaSlider.showTooltip()
-			const val255 = Math.round((val / 100) * 255)
+			const val255 = Math.round((et.valueAsNumber / 100) * 255)
 			colorAlphaInput.setValue(numToHexSuffix(val255))
 			updateColPreview()
 		})
@@ -202,14 +210,18 @@ export class PainterSettingTab extends PluginSettingTab {
 			return hex + alpha
 		}
 
-		const updateColPreview = () => {
-			if (colPreviewEl === null) return;
-			colPreviewEl.style.backgroundColor = combinedColor()
-		}
-
-		// TODO two-way binding
-		// extract & also call when editing
-		colorValueInput.inputEl.addEventListener('input', (e) => { console.log(e) })
+		// two-way binding
+		colorValueInput.inputEl.addEventListener('input', (e) => { 
+			if (e.target == null && e.currentTarget == null) return;
+			colorPicker.setValue(((e.target || e.currentTarget) as HTMLInputElement)?.value)
+			updateColPreview()
+		})
+		colorAlphaInput.inputEl.addEventListener('input', (e) => {
+			if (e.target == null && e.currentTarget == null) return;
+			const val = ((e.target || e.currentTarget) as HTMLInputElement).value
+			alphaSlider.setValue(Math.round((hexSuffixToNum(val) / 255) * 100))
+			updateColPreview()
+		})
 
 		updateColPreview()
 		const highlightersContainer = containerEl.createEl("div", {
