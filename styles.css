@@ -53,8 +53,8 @@
 	--lowlight-background: var(--background-primary);
 	border-radius: 0;
 	background-image: linear-gradient(360deg,
-			rgba(255, 255, 255, 0) 40%,
-			var(--lowlight-background) 30%) !important;
+		rgba(255, 255, 255, 0) 40%,
+		var(--lowlight-background) 30%) !important;
 }
 
 .highlightr-lowlight .workspace-split.mod-left-split mark,
@@ -83,8 +83,8 @@
 	border-radius: 0;
 	padding-bottom: 5px;
 	background-image: linear-gradient(360deg,
-			rgba(255, 255, 255, 0) 28%,
-			var(--floating-background) 28%) !important;
+		rgba(255, 255, 255, 0) 28%,
+		var(--floating-background) 28%) !important;
 }
 
 .highlightr-floating .workspace-split.mod-left-split mark,
