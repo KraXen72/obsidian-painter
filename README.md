@@ -31,9 +31,9 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - clean up file structure & move to esbuild instead of rollup
 
 ## Support plugin development
-If you find this Plugin helpful, consider it's further development or just say a small thank you
+If you find this Plugin helpful, consider it's further development or just say a small thank you  
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/KraXen72) [![kofi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/kraxen72)
-
+  
 ## Credits
 - [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license. support: [ko-fi](https://ko-fi.com/chetachi)
   - for most of the original source code (most has been rewritten)
