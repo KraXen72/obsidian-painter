@@ -17,3 +17,12 @@ export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefau
 	prevPos.line += opts2.ch
 	editor.setCursor(prevPos)
 }
+
+export function isURL(str: string) {
+  try {
+    const url = new URL(str);
+  } catch (_) {
+    return false;  
+  }
+  return true;
+}

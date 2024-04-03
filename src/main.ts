@@ -21,7 +21,7 @@ type commandsPlot = {
 	[key: string]: CommandPlot;
 };
 
-export default class HighlightrPlugin extends Plugin {
+export default class Painter extends Plugin {
 	app: EnhancedApp;
 	editor: EnhancedEditor;
 	manifest: PluginManifest;

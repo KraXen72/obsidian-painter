@@ -1,4 +1,4 @@
-import type HighlightrPlugin from "../main";
+import type Painter from "../main";
 import {
 	App,
 	Setting,
@@ -16,10 +16,10 @@ import { customHLIcon } from "src/custom-icons";
 import Sortable from 'sortablejs';
 
 export class HighlightrSettingTab extends PluginSettingTab {
-	plugin: HighlightrPlugin;
+	plugin: Painter;
 	appendMethod: string;
 
-	constructor(app: App, plugin: HighlightrPlugin) {
+	constructor(app: App, plugin: Painter) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

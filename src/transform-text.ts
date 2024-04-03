@@ -1,12 +1,10 @@
 import type { EnhancedEditor } from "./settings/settings-types";
 import type { EditorPosition, EditorSelection } from "obsidian";
+import { isURL } from "./utils";
 
 // credit for original code: https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys (modified)
 // turned it into a class which remembers the editor instance it was initialized with
 // it might be overkill but i cannot be bothered to pass in the editor every time
-
-// TODO replace with something else?
-const URL_REGEX = /^((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()[\]{};:'".,<>?«»“”‘’]))$/i;
 
 const TRIMBEFORE = ["\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t"];
 
@@ -53,7 +51,7 @@ interface contentChange {
 // TODO Fix missing this.references
 // TODO make expandSelection work from outside
 
-class TextTransformer {
+export class TextTransformer {
 	editor: EnhancedEditor
 	constructor(editor: EnhancedEditor) {
 		this.editor = editor
@@ -171,14 +169,14 @@ class TextTransformer {
 		let trimFinished = false;
 		while (!trimFinished) {
 			let cleanCount = 0;
-			trimBefore.forEach(str => {
+			for (const str of trimBefore) {
 				if (selection.startsWith(str)) {
 					selection = selection.slice(str.length);
 					so += str.length;
+				} else {
+					cleanCount++;
 				}
-				else cleanCount++;
-
-			});
+			}
 			if (cleanCount === trimBefore.length || !selection.length) trimFinished = true;
 		}
 
@@ -186,10 +184,13 @@ class TextTransformer {
 		trimFinished = false;
 		while (!trimFinished) {
 			let cleanCount = 0;
-			trimAfter.forEach((str) => {
-				if (selection.endsWith(str)) selection = selection.slice(0, -str.length);
-				else cleanCount++;
-			});
+			for (const str of trimAfter) {
+				if (selection.endsWith(str)) {
+					selection = selection.slice(0, -str.length);
+				} else {
+					cleanCount++;
+				}
+			}
 			if (cleanCount === trimAfter.length || !selection.length) trimFinished = true;
 		}
 
@@ -228,7 +229,7 @@ class TextTransformer {
 
 		// has to come after trimming to include things like brackets
 		const expandWhenOutside = EXPANDWHENOUTSIDE;
-		expandWhenOutside.forEach(pair => {
+		for (const pair of expandWhenOutside) {
 			if (pair[0] === frontMarkup || pair[1] === endMarkup) return; // allow undoing of the command creating the syntax
 			const trimLastSpace = Boolean(pair[2]);
 
@@ -238,15 +239,13 @@ class TextTransformer {
 				if (trimLastSpace) lastWordRange.head.ch--; // to avoid conflicts between trimming and expansion
 				this.editor.setSelection(firstWordRange.anchor, lastWordRange.head);
 			}
-		});
-
-
+		}
 		return { anchor: preSelExpAnchor, head: preSelExpHead };
 	}
-	recalibratePos (contentChangeList: contentChange[], pos: EditorPosition) {
-		contentChangeList.forEach(change => {
+	recalibratePos(contentChangeList: contentChange[], pos: EditorPosition) {
+		for (const change of contentChangeList) {
 			if (pos.line === change.line) pos.ch += change.shift;
-		});
+		}
 		return pos;
 	}
 	async expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
@@ -337,23 +336,20 @@ class TextTransformer {
 		}
 	
 		async function insertURLtoMDLink() {
-			const URLregex = URL_REGEX;
 			const cbText = (await navigator.clipboard.readText()).trim();
 	
 			let frontMarkup_ = frontMarkup;
 			let endMarkup_ = endMarkup;
-			if (URLregex.test(cbText)) {
+			if (isURL(cbText)) {
 				endMarkup_ = "](" + cbText + ")";
 				const urlExtension = cbText.split(".").pop();
 				if (urlExtension && IMAGEEXTENSIONS.includes(urlExtension)) frontMarkup_ = "![";
 			}
 			return [frontMarkup_, endMarkup_];
 		}
-		let doIt = true;
 	
 		// MAIN
-		//-------------------------------------------------------------------
-		console.log("\nSmarterMD Hotkeys triggered\n---------------------------");
+		console.log("painter: text-transform (smarter-md-hotkeys) triggered");
 	
 		// does not have to occur in multi-cursor loop since it already works
 		// on every cursor
@@ -374,7 +370,7 @@ class TextTransformer {
 		const allCursors = editor?.listSelections();
 	
 		// sets markup for each cursor/selection
-		allCursors.forEach(sel => {
+		for (const sel of allCursors) {
 			// account for shifts in Editor Positions due to applying markup to previous cursors
 			sel.anchor = this.recalibratePos(contentChangeList, sel.anchor);
 			sel.head = this.recalibratePos(contentChangeList, sel.head);
@@ -389,7 +385,7 @@ class TextTransformer {
 				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup);
 				applyMarkup(preSelExpAnchor, preSelExpHead, "single");
 			}	else if (this.multiLineSel() && this.isMultiLineMarkup(frontMarkup)) { // Wrap multi-line selection
-				console.log("Multiline Wrap");
+				console.log("multiline Wrap");
 				wrapMultiLine();
 			}	else if (this.multiLineSel() && !this.isMultiLineMarkup(frontMarkup)) { // Wrap *each* line of multi-line selection
 				let pointerOff = this.startOffset();
@@ -397,21 +393,22 @@ class TextTransformer {
 				console.log("lines: " + lines.length.toString());
 	
 				// get offsets for each line and apply markup to each
-				lines.forEach(line => {
-					console.log("");
+				for (const line of lines) {
 					editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
-	
 					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup);
 	
 					// Move Pointer to next line
 					pointerOff += line.length + 1; // +1 to account for line break
-					if (this.markupOutsideSel(frontMarkup, endMarkup)) pointerOff -= blen + alen; // account for removed markup
-					else pointerOff += blen + alen; // account for added markup
+					if (this.markupOutsideSel(frontMarkup, endMarkup)) {
+						pointerOff -= blen + alen; // account for removed markup
+					} else {
+						pointerOff += blen + alen; // account for added markup
+					};
 	
 					applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
-				});
+				}
 			}
-		});
+		}
 	
 	}
 }

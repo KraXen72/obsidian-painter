@@ -1,4 +1,4 @@
-import type HighlightrPlugin from "./main";
+import type Painter from "./main";
 import { Menu } from "obsidian";
 import { HighlightrSettings } from "./settings/settings-data";
 import highlighterMenu from "./menu";
@@ -9,7 +9,7 @@ export default function contextMenu(
 	app: EnhancedApp,
 	menu: Menu,
 	editor: EnhancedEditor,
-	plugin: HighlightrPlugin,
+	plugin: Painter,
 	settings: HighlightrSettings
 ): void {
 	const selection = editor.getSelection();

@@ -1,5 +1,5 @@
 import { addIcon } from "obsidian";
-import HighlightrPlugin from "./main";
+import Painter from "./main";
 import { HighlightrSettings } from "./settings/settings-data";
 
 export function customHLIcon(color: string) {
@@ -23,7 +23,7 @@ export function customHLIcon(color: string) {
 
 export function createHighlighterIcons(
 	settings: HighlightrSettings,
-	plugin: HighlightrPlugin
+	plugin: Painter
 ) {
 	const highlighterIcons: Record<string, SVGElement> = {
 		// manually paste in the content's of icon.svg whenever it's updated
