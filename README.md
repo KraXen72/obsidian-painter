@@ -9,26 +9,33 @@ Inspired by my [css snippet & data.json](https://github.com/chetachiezikeuzor/Hi
 The aim of this plugin is to support most features of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) as well as changing of the text color.  
 
 ## Improvements over original plugin
-- smarter selection (adapted from [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys))
-  - `inline code` signifies the part of the text being selected. `|` is a cursor without selection.
-  - **auto-select word:** "hello t`|`here world!" => "hello `there` world!"
-  - **trim selection to nearest word:** "what` is` up?" => "what `is` up?"
+### New features
+- Added `text-color` higlight option
+- Added `minimal` menu style - only show icons in one line (with `title` attributes)
+- Smarter selection (adapted from [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys))
+  - `Inline code` signifies the part of the text being selected. `|` is a cursor without selection.
+  - **Auto-select word:** "hello t`|`here world!" => "hello `there` world!"
+  - **Trim selection to nearest word:** "what` is` up?" => "what `is` up?"
   - You are still able to paint a certain part of a word: "h`ell`o" => "h`ell`o"
-- added `text-color` higlight option
-- added `minimal` menu style - only show icons in one line
-  - added `title` attributes to icons in menu (helps in minimal menu)		
-- added `Clear` (formerly `Remove higlight`) to the menu as well
-- removed a bunch of unnecessary code & styles, overall cleanup & rewrite
-  - removed a bunch of custom icons in favor of normal obsidian icons	
-  - removed `wait()` calls (promise + settimeout)	
-- remove dependencies:
-  - `pickr` - replaced with obsidian's native color picker & an alpha slider
-- new svg icon (modified lucide highlighter icon)
-- highlightr styles now use css variables instead of hardcoded values
-- replaced regex-based eraseHighlight with a `DOMParser` approach
-- added better dynamic highligt preview in settings
-- renamed command ids for consistency
-- clean up file structure & move to esbuild instead of rollup
+- Added `Clear` (formerly `Remove higlight`) to the menu as well
+- New svg icon (modified lucide highlighter icon)
+- Added dynamic highlight preview in settings (shows with your colors)
+  
+### Fixed
+- [Works in Obsidian's Table editor](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/90)
+- [Removed extra spaces after marks](https://github.com/chetachiezikeuzor/Highlightr-Plugin/pull/40)
+- Highlightr styles now use css variables instead of hardcoded values
+- Replaced regex-based eraseHighlight with a `DOMParser` approach
+  
+### Other
+- Cleaned up file structure & move to esbuild instead of rollupk
+- Removed a bunch of unnecessary code & styles, overall cleanup & rewrite
+  - Removed a bunch of custom icons in favor of normal obsidian icons	
+  - Removed `wait()` calls (promise + settimeout)	
+- Removed dependencies:
+  - `pickr` - Replaced with obsidian's native color picker & an alpha slider
+- Renamed command ids for consistency
+- Rewrote basically the entire plugin lol
 
 ## Support plugin development
 If you find this Plugin helpful, consider it's further development or just say a small thank you  
