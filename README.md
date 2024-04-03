@@ -8,12 +8,6 @@
 Inspired by my [css snippet & data.json](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/61) to use Highlightr to change text color.  
 The aim of this plugin is to support most features of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) as well as changing of the text color.  
 
-## Credits
-- [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license
-  - for most of the original source code (most has been rewritten)
-- [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys) released under [MIT](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/blob/master/LICENSE) license 
-  - for smart text modification logic
-
 ## Improvements over original plugin
 - smarter selection (adapted from [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys))
   - `inline code` signifies the part of the text being selected. `|` is a cursor without selection.
@@ -35,6 +29,18 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - added better dynamic highligt preview in settings
 - renamed command ids for consistency
 - clean up file structure & move to esbuild instead of rollup
+
+## Support plugin development
+If you find this Plugin helpful, consider it's further development or just say a small thank you
+[![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/KraXen72) [![kofi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/kraxen72)
+
+## Credits
+- [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license
+  - for most of the original source code (most has been rewritten)
+  - support: [ko-fi](https://ko-fi.com/chetachi)
+- [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys) released under [MIT](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/blob/master/LICENSE) license 
+  - for smart text modification logic
+  - support: [ko-fi](https://ko-fi.com/pseudometa)
 
 ## TODO before release on Plugin Store
 - [ ] two way binding for color inputs (editing input box updates color picker/slider)
