@@ -1,6 +1,9 @@
 import type { EnhancedEditor } from "./settings/settings-types";
 import type { EditorPosition, EditorSelection } from "obsidian";
+
 // credit for original code: https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys (modified)
+// turned it into a class which remembers the editor instance it was initialized with
+// it might be overkill but i cannot be bothered to pass in the editor every time
 
 // TODO replace with something else?
 const URL_REGEX = /^((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()[\]{};:'".,<>?«»“”‘’]))$/i;
@@ -41,102 +44,63 @@ const IMAGEEXTENSIONS = ["png", "jpg", "jpeg", "gif", "tiff"];
 const posEqual = (a: EditorPosition, b: EditorPosition) => a.line === b.line && a.ch === b.ch;
 const rangeEqual = (a: EditorSelection, b: EditorSelection) => posEqual(a.anchor, b.anchor) && posEqual(a.head, b.head);
 
-type nudgeOpts = { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
-const nudgeDefaults = { ch: 0, ln: 0, cursor: 'from' } as const
-
-export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults) {
-	const opts2 = Object.assign(nudgeDefaults, opts)
-	const prevPos = editor.getCursor('to')
-	prevPos.ch += opts2.ch
-	prevPos.line += opts2.ln
-	editor.setCursor(prevPos)
-}
-
 interface contentChange {
-		line: number;
-		shift: number;
-	}
-
-export function expandSelection() {
-	trimSelection();
-	console.log("before expandSelection", true);
-
-	// expand to word
-	const preSelExpAnchor = editor.getCursor("from");
-	const preSelExpHead = editor.getCursor("to");
-
-	const firstWordRange = textUnderCursor(preSelExpAnchor) as CodeMirror.Range;
-	let lastWordRange = textUnderCursor(preSelExpHead) as CodeMirror.Range;
-
-	// Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
-	if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0) {
-		const lastWordRangeInner = textUnderCursor({
-			...preSelExpHead,
-			ch: preSelExpHead.ch - 1,
-		}) as CodeMirror.Range;
-		// if the result of last word range is not the same as the result of
-		// head going back one character, use the inner result
-		if (!rangeEqual(lastWordRange, lastWordRangeInner)) lastWordRange = lastWordRangeInner;
-	}
+	line: number;
+	shift: number;
 }
 
-export async function expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
-
-	const startOffset = () => editor.posToOffset(editor.getCursor("from"));
-	const endOffset = () => editor.posToOffset(editor.getCursor("to"));
-	const noteLength = () => editor.getValue().length;
-	const offToPos = (offset: number) => {
+class TextTransformer {
+	editor: EnhancedEditor
+	constructor(editor: EnhancedEditor) {
+		this.editor = editor
+	}
+	startOffset() { return this.editor.posToOffset(this.editor.getCursor("from")) }
+	endOffset() { return this.editor.posToOffset(this.editor.getCursor("to")) }
+	noteLength() { return this.editor.getValue().length }
+	offToPos(offset: number) {
 		// prevent error when at the start or beginning of document
 		if (offset < 0) offset = 0;
-		if (offset > noteLength()) offset = noteLength();
-		return editor.offsetToPos(offset);
+		if (offset > this.noteLength()) offset = this.noteLength();
+		return this.editor.offsetToPos(offset);
 	};
-	function isOutsideSel(bef: string, aft: string) {
-		const so = startOffset();
-		const eo = endOffset();
+	isOutsideSel(bef:string, aft:string) {
+		const so = this.startOffset();
+		const eo = this.endOffset();
 
 		if (so - bef.length < 0) return false; // beginning of the document
-		if (eo - aft.length > noteLength()) return false; // end of the document
+		if (eo - aft.length > this.noteLength()) return false; // end of the document
 
-		const charsBefore = editor.getRange(offToPos(so - bef.length), offToPos(so));
-		const charsAfter = editor.getRange(offToPos(eo), offToPos(eo + aft.length));
+		const charsBefore = this.editor.getRange(this.offToPos(so - bef.length), this.offToPos(so));
+		const charsAfter = this.editor.getRange(this.offToPos(eo), this.offToPos(eo + aft.length));
 		return charsBefore === bef && charsAfter === aft;
 	}
-
-	const isMultiLineMarkup = () => ["`", "%%", "<!--", "$"].includes(frontMarkup);
-	const markupOutsideSel = () => isOutsideSel(frontMarkup, endMarkup);
-	function markupOutsideMultiline(anchor: EditorPosition, head: EditorPosition) {
+	isMultiLineMarkup(frontMarkup: string) { return ["`", "%%", "<!--", "$"].includes(frontMarkup) }
+	markupOutsideSel(frontMarkup: string, endMarkup: string) { return this.isOutsideSel(frontMarkup, endMarkup) }
+	markupOutsideMultiline(frontMarkup: string, endMarkup: string, anchor: EditorPosition, head: EditorPosition) {
 		if (anchor.line === 0) return false;
-		if (head.line === editor.lastLine()) return false;
+		if (head.line === this.editor.lastLine()) return false;
 
-		const prevLineContent = editor.getLine(anchor.line - 1);
-		const followLineContent = editor.getLine(head.line + 1);
+		const prevLineContent = this.editor.getLine(anchor.line - 1);
+		const followLineContent = this.editor.getLine(head.line + 1);
 		return prevLineContent.startsWith(frontMarkup) && followLineContent.startsWith(endMarkup);
 	}
-
-	const noSel = () => !editor.somethingSelected();
-	const multiLineSel = () => editor.getSelection().includes("\n");
-
-
-	function deleteLine(lineNo: number) {
+	noSel() { return !this.editor.somethingSelected() }
+	multiLineSel() { return this.editor.getSelection().includes("\n") }
+	deleteLine(lineNo: number) {
 		// there is no 'next line' when cursor is on the last line
-		if (lineNo < editor.lastLine()) {
+		if (lineNo < this.editor.lastLine()) {
 			const lineStart = { line: lineNo, ch: 0 };
 			const nextLineStart = { line: lineNo + 1, ch: 0 };
-			editor.replaceRange("", lineStart, nextLineStart);
+			this.editor.replaceRange("", lineStart, nextLineStart);
 		} else {
-			const previousLineEnd = { line: lineNo - 1, ch: editor.getLine(lineNo).length };
-			const lineEnd = { line: lineNo, ch: editor.getLine(lineNo).length };
-			editor.replaceRange("", previousLineEnd, lineEnd);
+			const previousLineEnd = { line: lineNo - 1, ch: this.editor.getLine(lineNo).length };
+			const lineEnd = { line: lineNo, ch: this.editor.getLine(lineNo).length };
+			this.editor.replaceRange("", previousLineEnd, lineEnd);
 		}
 	}
-
-	// Core Functions
-	//-------------------------------------------------------------------
-	function textUnderCursor(ep: EditorPosition) {
-
+	textUnderCursor(frontMarkup: string, endMarkup: string, ep: EditorPosition) {
 		// prevent underscores (wrongly counted as words) to be expanded to
-		if (markupOutsideSel() && noSel()) return { anchor: ep, head: ep };
+		if (this.markupOutsideSel(frontMarkup, endMarkup) && this.noSel()) return { anchor: ep, head: ep };
 
 		let endPos, startPos;
 		if (frontMarkup !== "`") {
@@ -146,49 +110,48 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			// https://github.com/obsidianmd/obsidian-api/blob/fac5e67f5d83829a4e0126905494c8cbca27765b/obsidian.d.ts#L787
 
 			// TODO: update for mobile https://github.com/obsidianmd/obsidian-releases/pull/712#issuecomment-1004417481
-			if (editor.cm instanceof window.CodeMirror) return editor.cm.findWordAt(ep); // CM5
+			if (this.editor.cm instanceof window.CodeMirror) return this.editor.cm.findWordAt(ep); // CM5
 
-			const word = editor.cm.state.wordAt(editor.posToOffset(ep)); // CM6
+			const word = this.editor.cm.state.wordAt(this.editor.posToOffset (ep)); // CM6
 			if (!word) return { anchor: ep, head: ep }; // for when there is no word close by
 
-			startPos = offToPos(word.from);
-			endPos = offToPos(word.to);
+			startPos = this.offToPos(word.from);
+			endPos = this.offToPos(word.to);
 		}
 
 		// Inline-Code: use only space as delimiter
 		if (frontMarkup === "`" || frontMarkup === "$") {
-			console.log("Getting Code under Cursor");
-			const so = editor.posToOffset(ep);
+			console.log ("Getting Code under Cursor");
+			const so = this.editor.posToOffset(ep);
 			let charAfter, charBefore;
 			let [i, j, endReached, startReached] = [0, 0, false, false];
 
 			// @ts-ignore
 			while (!/\s/.test(charBefore) && !startReached) {
-				charBefore = editor.getRange(offToPos(so - (i + 1)), offToPos(so - i));
+				charBefore = this.editor.getRange(this.offToPos(so - (i+1)), this.offToPos(so - i));
 				i++;
 				if (so - (i - 1) === 0) startReached = true;
 			}
 
 			// @ts-ignore
 			while (!/\s/.test(charAfter) && !endReached) {
-				charAfter = editor.getRange(offToPos(so + j), offToPos(so + j + 1));
+				charAfter = this.editor.getRange(this.offToPos(so + j), this.offToPos(so + j+1));
 				j++;
-				if (so + (j - 1) === noteLength()) endReached = true;
+				if (so+(j-1) === this.noteLength()) endReached = true;
 			}
 
-			startPos = offToPos(so - (i - 1));
-			endPos = offToPos(so + (j - 1));
+			startPos = this.offToPos(so - (i-1));
+			endPos = this.offToPos(so + (j-1));
 		}
 
 		return { anchor: startPos, head: endPos };
 	}
-
-	function trimSelection() {
+	trimSelection(frontMarkup: string, endMarkup: string) {
 		let trimAfter = TRIMAFTER;
 		let trimBefore = TRIMBEFORE;
 
 		// modify what to trim based on command
-		if (isMultiLineMarkup()) {
+		if (this.isMultiLineMarkup(frontMarkup)) {
 			trimBefore = [frontMarkup];
 			trimAfter = [endMarkup];
 		} else if (endMarkup) { // check needed to ensure no special commands are added
@@ -196,9 +159,9 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			trimAfter.push(endMarkup);
 		}
 
-		let selection = editor.getSelection();
-		let so = startOffset();
-		console.log("before trim", true);
+		let selection = this.editor.getSelection();
+		let so = this.startOffset();
+		console.log ("before trim", true);
 
 		// before
 		let trimFinished = false;
@@ -230,13 +193,34 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		const blockID = selection.match(/ \^\w+$/);
 		if (blockID) selection = selection.slice(0, -blockID[0].length);
 
-		editor.setSelection(offToPos(so), offToPos(so + selection.length));
-		console.log("after trim", true);
+		this.editor.setSelection(this.offToPos(so), this.offToPos(so + selection.length));
+		console.log ("after trim", true);
 	}
+	expandSelection(frontMarkup: string, endMarkup: string) {
+		this.trimSelection(frontMarkup, endMarkup);
+		console.log("before expandSelection", true);
 
-		editor.setSelection(firstWordRange.anchor, lastWordRange.head);
-		console.log("after expandSelection", true);
-		trimSelection();
+		// expand to word
+		const preSelExpAnchor = this.editor.getCursor("from");
+		const preSelExpHead = this.editor.getCursor("to");
+
+		const firstWordRange = this.textUnderCursor(frontMarkup, endMarkup, preSelExpAnchor) as CodeMirror.Range;
+		let lastWordRange = this.textUnderCursor(frontMarkup, endMarkup, preSelExpHead) as CodeMirror.Range;
+
+		// Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
+		if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0 ) {
+			const lastWordRangeInner = this.textUnderCursor(frontMarkup, endMarkup, {
+				...preSelExpHead,
+				ch: preSelExpHead.ch - 1,
+			}) as CodeMirror.Range;
+			// if the result of last word range is not the same as the result of
+			// head going back one character, use the inner result
+			if (!rangeEqual(lastWordRange, lastWordRangeInner)) lastWordRange = lastWordRangeInner;
+		}
+
+		this.editor.setSelection(firstWordRange.anchor, lastWordRange.head);
+		console.log ("after expandSelection", true);
+		this.trimSelection(frontMarkup, endMarkup);
 
 		// has to come after trimming to include things like brackets
 		const expandWhenOutside = EXPANDWHENOUTSIDE;
@@ -244,186 +228,188 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			if (pair[0] === frontMarkup || pair[1] === endMarkup) return; // allow undoing of the command creating the syntax
 			const trimLastSpace = Boolean(pair[2]);
 
-			if (isOutsideSel(pair[0], pair[1])) {
+			if (this.isOutsideSel(pair[0], pair[1])) {
 				firstWordRange.anchor.ch -= pair[0].length;
 				lastWordRange.head.ch += pair[1].length;
 				if (trimLastSpace) lastWordRange.head.ch--; // to avoid conflicts between trimming and expansion
-				editor.setSelection(firstWordRange.anchor, lastWordRange.head);
+				this.editor.setSelection(firstWordRange.anchor, lastWordRange.head);
 			}
 		});
 
 
 		return { anchor: preSelExpAnchor, head: preSelExpHead };
 	}
-
-	function recalibratePos(pos: EditorPosition) {
+	recalibratePos (contentChangeList: contentChange[], pos: EditorPosition) {
 		contentChangeList.forEach(change => {
 			if (pos.line === change.line) pos.ch += change.shift;
 		});
 		return pos;
 	}
+	
 
-	function applyMarkup(preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string) {
-		let selectedText = editor.getSelection();
-		const so = startOffset();
-		let eo = endOffset();
-
-		// abort if empty line & multi, since no markup on empty line in between desired
-		if (noSel() && lineMode === "multi") return;
-
-		// Do Markup
-		if (!markupOutsideSel()) {
-			// insert extra space for comments
-			if (["%%", "<!--"].includes(frontMarkup)) {
-				selectedText = " " + selectedText + " ";
-				// account for shift in positining for the cursor repositioning
-				eo = eo + 2;
-				blen++;
-				alen++;
+	async expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
+		function applyMarkup(frontMarkup: string, endMarkup: string, preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string ) {
+			let selectedText = this.editor.getSelection();
+			const so = this.startOffset();
+			let eo = this.endOffset();
+	
+			// abort if empty line & multi, since no markup on empty line in between desired
+			if (this.noSel() && lineMode === "multi") return;
+	
+			// Do Markup
+			if (!this.markupOutsideSel(frontMarkup, endMarkup)) {
+				// insert extra space for comments
+				if (["%%", "<!--"].includes(frontMarkup)) {
+					selectedText = " " + selectedText + " ";
+					// account for shift in positining for the cursor repositioning
+					eo = eo + 2;
+					blen++;
+					alen++;
+				}
+				editor.replaceSelection(frontMarkup + selectedText + endMarkup);
+	
+				contentChangeList.push(
+					{ line: preAnchor.line, shift: blen },
+					{ line: preHead.line, shift: alen }
+				);
+				preAnchor.ch += blen;
+				preHead.ch += blen;
 			}
-			editor.replaceSelection(frontMarkup + selectedText + endMarkup);
-
-			contentChangeList.push(
-				{ line: preAnchor.line, shift: blen },
-				{ line: preHead.line, shift: alen }
-			);
-			preAnchor.ch += blen;
-			preHead.ch += blen;
+	
+			// Undo Markup (outside selection, inside not necessary as trimmed already)
+			if (this.markupOutsideSel()) {
+				editor.setSelection(this.offToPos(so - blen), this.offToPos(eo + alen));
+				editor.replaceSelection(selectedText);
+	
+				contentChangeList.push(
+					{ line: preAnchor.line, shift: -blen },
+					{ line: preHead.line, shift: -alen }
+				);
+				preAnchor.ch -= blen;
+				preHead.ch -= blen;
+			}
+	
+			if (lineMode === "single") editor.setSelection(preAnchor, preHead);
 		}
 
-		// Undo Markup (outside selection, inside not necessary as trimmed already)
-		if (markupOutsideSel()) {
-			editor.setSelection(offToPos(so - blen), offToPos(eo + alen));
-			editor.replaceSelection(selectedText);
-
-			contentChangeList.push(
-				{ line: preAnchor.line, shift: -blen },
-				{ line: preHead.line, shift: -alen }
-			);
-			preAnchor.ch -= blen;
-			preHead.ch -= blen;
-		}
-
-		if (lineMode === "single") editor.setSelection(preAnchor, preHead);
-	}
-
-	function wrapMultiLine() {
-		const selAnchor = editor.getCursor("from");
-		selAnchor.ch = 0;
-		const selHead = editor.getCursor("to");
-		selHead.ch = editor.getLine(selHead.line).length;
-
-		if (frontMarkup === "`") { // switch to fenced code instead of inline code
-			frontMarkup = "```";
-			endMarkup = "```";
-			alen = 3;
-			blen = 3;
-		}
-		else if (frontMarkup === "$") { // switch to block mathjax syntax instead of inline mathjax
-			frontMarkup = "$$";
-			endMarkup = "$$";
-			alen = 2;
-			blen = 2;
-		}
-
-		// do Markup
-		if (!markupOutsideMultiline(selAnchor, selHead)) {
-			editor.setSelection(selAnchor);
-			editor.replaceSelection(frontMarkup + "\n");
-			selHead.line++; // extra line to account for shift from inserting frontMarkup
-			editor.setSelection(selHead);
-			editor.replaceSelection("\n" + endMarkup);
-
-			// when fenced code, position cursor for language definition
-			if (frontMarkup === "```") {
-				const languageDefPos = selAnchor;
-				languageDefPos.ch = 3;
-				editor.setSelection(languageDefPos);
+		function wrapMultiLine() {
+			const selAnchor = editor.getCursor("from");
+			selAnchor.ch = 0;
+			const selHead = editor.getCursor("to");
+			selHead.ch = editor.getLine(selHead.line).length;
+	
+			if (frontMarkup === "`") { // switch to fenced code instead of inline code
+				frontMarkup = "```";
+				endMarkup = "```";
+				alen = 3;
+				blen = 3;
+			}
+			else if (frontMarkup === "$") { // switch to block mathjax syntax instead of inline mathjax
+				frontMarkup = "$$";
+				endMarkup = "$$";
+				alen = 2;
+				blen = 2;
+			}
+	
+			// do Markup
+			if (!markupOutsideMultiline(selAnchor, selHead)) {
+				editor.setSelection(selAnchor);
+				editor.replaceSelection(frontMarkup + "\n");
+				selHead.line++; // extra line to account for shift from inserting frontMarkup
+				editor.setSelection(selHead);
+				editor.replaceSelection("\n" + endMarkup);
+	
+				// when fenced code, position cursor for language definition
+				if (frontMarkup === "```") {
+					const languageDefPos = selAnchor;
+					languageDefPos.ch = 3;
+					editor.setSelection(languageDefPos);
+				}
+			}
+	
+			// undo Block Markup
+			if (markupOutsideMultiline(selAnchor, selHead)) {
+				deleteLine(selAnchor.line - 1);
+				deleteLine(selHead.line); // not "+1" due to shift from previous line deletion
 			}
 		}
-
-		// undo Block Markup
-		if (markupOutsideMultiline(selAnchor, selHead)) {
-			deleteLine(selAnchor.line - 1);
-			deleteLine(selHead.line); // not "+1" due to shift from previous line deletion
+	
+		async function insertURLtoMDLink() {
+			const URLregex = URL_REGEX;
+			const cbText = (await navigator.clipboard.readText()).trim();
+	
+			let frontMarkup_ = frontMarkup;
+			let endMarkup_ = endMarkup;
+			if (URLregex.test(cbText)) {
+				endMarkup_ = "](" + cbText + ")";
+				const urlExtension = cbText.split(".").pop();
+				if (urlExtension && IMAGEEXTENSIONS.includes(urlExtension)) frontMarkup_ = "![";
+			}
+			return [frontMarkup_, endMarkup_];
 		}
-	}
-
-	async function insertURLtoMDLink() {
-		const URLregex = URL_REGEX;
-		const cbText = (await navigator.clipboard.readText()).trim();
-
-		let frontMarkup_ = frontMarkup;
-		let endMarkup_ = endMarkup;
-		if (URLregex.test(cbText)) {
-			endMarkup_ = "](" + cbText + ")";
-			const urlExtension = cbText.split(".").pop();
-			if (urlExtension && IMAGEEXTENSIONS.includes(urlExtension)) frontMarkup_ = "![";
+		let doIt = true;
+	
+		// MAIN
+		//-------------------------------------------------------------------
+		console.log("\nSmarterMD Hotkeys triggered\n---------------------------");
+	
+		// does not have to occur in multi-cursor loop since it already works
+		// on every cursor
+		if (frontMarkup === "new-line") {
+			// @ts-expect-error, not typed
+			editor.newlineOnly();
+			return;
 		}
-		return [frontMarkup_, endMarkup_];
+	
+		// eslint-disable-next-line require-atomic-updates
+		if (endMarkup === "]()") [frontMarkup, endMarkup] = await insertURLtoMDLink();
+		let blen = frontMarkup.length;
+		let alen = endMarkup.length;
+	
+		// saves the amount of position shift for each line
+		// used to calculate correct positions for multi-cursor
+		const contentChangeList: contentChange[] = [];
+		const allCursors = editor?.listSelections();
+	
+		// sets markup for each cursor/selection
+		allCursors.forEach(sel => {
+			// account for shifts in Editor Positions due to applying markup to previous cursors
+			sel.anchor = this.recalibratePos(sel.anchor);
+			sel.head = this.recalibratePos(sel.head);
+			editor.setSelection(sel.anchor, sel.head);
+	
+			// prevent things like triple-click selection from triggering multi-line
+			this.trimSelection();
+	
+			// run special cases instead
+			if (!this.multiLineSel()) { // wrap single line selection
+				console.log("single line");
+				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection();
+				this.applyMarkup(preSelExpAnchor, preSelExpHead, "single");
+			}	else if (this.multiLineSel() && this.isMultiLineMarkup()) { // Wrap multi-line selection
+				console.log("Multiline Wrap");
+				this.wrapMultiLine();
+			}	else if (this.multiLineSel() && !this.isMultiLineMarkup()) { // Wrap *each* line of multi-line selection
+				let pointerOff = this.startOffset();
+				const lines = editor.getSelection().split("\n");
+				console.log("lines: " + lines.length.toString());
+	
+				// get offsets for each line and apply markup to each
+				lines.forEach(line => {
+					console.log("");
+					editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
+	
+					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection();
+	
+					// Move Pointer to next line
+					pointerOff += line.length + 1; // +1 to account for line break
+					if (this.markupOutsideSel()) pointerOff -= blen + alen; // account for removed markup
+					else pointerOff += blen + alen; // account for added markup
+	
+					this.applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
+				});
+			}
+		});
+	
 	}
-	let doIt = true;
-
-	// MAIN
-	//-------------------------------------------------------------------
-	console.log("\nSmarterMD Hotkeys triggered\n---------------------------");
-
-	// does not have to occur in multi-cursor loop since it already works
-	// on every cursor
-	if (frontMarkup === "new-line") {
-		// @ts-expect-error, not typed
-		editor.newlineOnly();
-		return;
-	}
-
-	// eslint-disable-next-line require-atomic-updates
-	if (endMarkup === "]()") [frontMarkup, endMarkup] = await insertURLtoMDLink();
-	let blen = frontMarkup.length;
-	let alen = endMarkup.length;
-
-	// saves the amount of position shift for each line
-	// used to calculate correct positions for multi-cursor
-	const contentChangeList: contentChange[] = [];
-	const allCursors = editor?.listSelections();
-
-	// sets markup for each cursor/selection
-	allCursors.forEach(sel => {
-		// account for shifts in Editor Positions due to applying markup to previous cursors
-		sel.anchor = recalibratePos(sel.anchor);
-		sel.head = recalibratePos(sel.head);
-		editor.setSelection(sel.anchor, sel.head);
-
-		// prevent things like triple-click selection from triggering multi-line
-		trimSelection();
-
-		// run special cases instead
-		if (!multiLineSel()) { // wrap single line selection
-			console.log("single line");
-			const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
-			applyMarkup(preSelExpAnchor, preSelExpHead, "single");
-		}	else if (multiLineSel() && isMultiLineMarkup()) { // Wrap multi-line selection
-			console.log("Multiline Wrap");
-			wrapMultiLine();
-		}	else if (multiLineSel() && !isMultiLineMarkup()) { // Wrap *each* line of multi-line selection
-			let pointerOff = startOffset();
-			const lines = editor.getSelection().split("\n");
-			console.log("lines: " + lines.length.toString());
-
-			// get offsets for each line and apply markup to each
-			lines.forEach(line => {
-				console.log("");
-				editor.setSelection(offToPos(pointerOff), offToPos(pointerOff + line.length));
-
-				const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
-
-				// Move Pointer to next line
-				pointerOff += line.length + 1; // +1 to account for line break
-				if (markupOutsideSel()) pointerOff -= blen + alen; // account for removed markup
-				else pointerOff += blen + alen; // account for added markup
-
-				applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
-			});
-		}
-	});
-
 }
