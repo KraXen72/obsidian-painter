@@ -3,7 +3,7 @@ import type { EditorPosition, EditorSelection } from "obsidian";
 import { isURL } from "./utils";
 
 interface nudgeOpts { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
-const nudgeDefaults: nudgeOpts = { ch: 0, ln: 0, cursor: 'from' } as const
+const nudgeDefaults: nudgeOpts = { ch: 0, ln: 0, cursor: 'to' } as const
 
 interface wrapOpts { expand?: boolean, moveCursorToEnd?: boolean }
 const wrapDefaults: wrapOpts = { expand: true, moveCursorToEnd: false }
@@ -314,6 +314,7 @@ export class TextTransformer {
 			if (lineMode === "single") {
 				if (opts2.moveCursorToEnd) {
 					nudgeCursor(this.editor, { ch: 1 })
+					console.log("aaa", this.editor.getCursor())
 				} else {
 					this.editor.setSelection(preAnchor, preHead);
 				}
