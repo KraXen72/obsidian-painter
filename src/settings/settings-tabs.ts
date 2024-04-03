@@ -111,7 +111,7 @@ export class PainterSettingTab extends PluginSettingTab {
 		let styleDemoEl = createEl("p", { cls: 'painter-plugin-style-demo' });
 		styleDemoEl.appendChild(styleDemo())
 		const reRollBtn = createEl('button', { text: 'try different color' })
-		reRollBtn.addEventListener('click', () => { 
+		reRollBtn.addEventListener('click', () => {
 			styleDemoEl.textContent = ''
 			styleDemoEl.appendChild(styleDemo())
 		});
@@ -126,12 +126,32 @@ export class PainterSettingTab extends PluginSettingTab {
 			.setDesc(
 				`Create new highlight colors by providing a color name and using the color picker to set the hex code value. Don't forget to save the color before exiting the color picker. Drag and drop the highlight color to change the order for your highlighter component.`
 			);
+
+		const safeHex = () => {
+			let hex = colorValueInput.getValue() || defaultColor;
+			if (!hex.startsWith('#')) hex = "#" + hex
+			if (hex.length > 7) hex = hex.slice(0, 8)
+			return hex
+		}
+		const safeAlpha = () => {
+			let alpha = colorAlphaInput.getValue() || ""
+			if (alpha.length > 2) alpha = alpha.slice(0, 3)
+			return alpha
+		}
+		const combinedColor = () => safeHex() + safeAlpha();
+
 		const defaultColor = "#cca9ff"
 		let colPreviewEl: HTMLDivElement | null = null;
 
-		const updateColPreview = () => {
+		/** updates color input and preview */
+		const updateColorControls = () => {
 			if (colPreviewEl === null) return;
 			colPreviewEl.style.backgroundColor = combinedColor()
+			colorPicker.setValue(safeHex())
+			updateSlider(safeAlpha())
+		}
+		const updateSlider = (hexval: string) => {
+			alphaSlider.setValue(Math.round((hexSuffixToNum(hexval) / 255) * 100))
 		}
 
 		const colorNameInput = new TextComponent(addColorSetting.controlEl);
@@ -148,13 +168,14 @@ export class PainterSettingTab extends PluginSettingTab {
 		colorAlphaInput.inputEl.setCssStyles({ width: '2.75rem' })
 		colorAlphaInput.setValue('ff')
 
+		// two-way binding: 1: bind colorInput & slider => text inputs & preview
 		const colorPicker = new ColorComponent(addColorSetting.controlEl) as ColorComponent & { colorPickerEl: HTMLInputElement }
 		colorPicker.setValue(defaultColor)
 		colorPicker.colorPickerEl.addEventListener('input', (e) => {
 			if (e.target == null && e.currentTarget == null) return;
 			const et = (e.target || e.currentTarget) as HTMLInputElement
 			colorValueInput.setValue(et.value)
-			updateColPreview()
+			updateColorControls()
 		})
 
 		const alphaSlider = new SliderComponent(addColorSetting.controlEl)
@@ -168,12 +189,25 @@ export class PainterSettingTab extends PluginSettingTab {
 			alphaSlider.showTooltip()
 			const val255 = Math.round((et.valueAsNumber / 100) * 255)
 			colorAlphaInput.setValue(numToHexSuffix(val255))
-			updateColPreview()
+			updateColorControls()
+		})
+
+		// two-way binding: 2: bind text inputs => color & slider & preview
+		colorValueInput.inputEl.addEventListener('input', (e) => {
+			if (e.target == null && e.currentTarget == null) return;
+			colorPicker.setValue(((e.target || e.currentTarget) as HTMLInputElement)?.value)
+			updateColorControls()
+		})
+		colorAlphaInput.inputEl.addEventListener('input', (e) => {
+			if (e.target == null && e.currentTarget == null) return;
+			const val = ((e.target || e.currentTarget) as HTMLInputElement).value
+			updateSlider(val)
+			updateColorControls()
 		})
 
 		const colPreviewWrap = addColorSetting.controlEl.createDiv({ cls: 'painter-plugin-color-preview' })
 		colPreviewEl = colPreviewWrap.createDiv({ cls: 'painter-plugin-color-preview2' })
-		
+
 		new ButtonComponent(addColorSetting.controlEl)
 			.setClass("painter-plugin-settings-button")
 			.setClass("painter-plugin-settings-button-add")
@@ -187,9 +221,9 @@ export class PainterSettingTab extends PluginSettingTab {
 				if (!colorName) { new Notice("Painter: Color name missing"); return; }
 				if (!colorValue) { new Notice("Painter: HEX code missing"); return; }
 				if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
-				if (this.plugin.settings.highlighterOrder.includes(colorName)) { 
-					new Notice(`Painter: Color '${colorName}' already exists`); 
-					return; 
+				if (this.plugin.settings.highlighterOrder.includes(colorName)) {
+					new Notice(`Painter: Color '${colorName}' already exists`);
+					return;
 				}
 
 				this.plugin.settings.highlighterOrder.push(colorName);
@@ -200,30 +234,7 @@ export class PainterSettingTab extends PluginSettingTab {
 				dispatchEvent(new Event("painter:refreshstyles"));
 			});
 
-
-		const combinedColor = () => {
-			let hex = colorValueInput.getValue() || defaultColor;
-			if (!hex.startsWith('#')) hex = "#" + hex
-			if (hex.length > 7) hex = hex.slice(0, 8)
-			let alpha = colorAlphaInput.getValue() || ""
-			if (alpha.length > 2) alpha = alpha.slice(0, 3)
-			return hex + alpha
-		}
-
-		// two-way binding
-		colorValueInput.inputEl.addEventListener('input', (e) => { 
-			if (e.target == null && e.currentTarget == null) return;
-			colorPicker.setValue(((e.target || e.currentTarget) as HTMLInputElement)?.value)
-			updateColPreview()
-		})
-		colorAlphaInput.inputEl.addEventListener('input', (e) => {
-			if (e.target == null && e.currentTarget == null) return;
-			const val = ((e.target || e.currentTarget) as HTMLInputElement).value
-			alphaSlider.setValue(Math.round((hexSuffixToNum(val) / 255) * 100))
-			updateColPreview()
-		})
-
-		updateColPreview()
+		updateColorControls()
 		const highlightersContainer = containerEl.createEl("div", {
 			attr: { id: "painter-plugin-sortable-group" },
 		});
@@ -248,8 +259,9 @@ export class PainterSettingTab extends PluginSettingTab {
 						.onClick(() => {
 							const colorVal = this.plugin.settings.highlighters[highlighter]
 							colorNameInput.setValue(highlighter)
-							colorValueInput.setValue(colorVal.slice(0,7))
+							colorValueInput.setValue(colorVal.slice(0, 7))
 							colorAlphaInput.setValue(colorVal.slice(7, 9) || 'ff')
+							updateColorControls()
 						})
 				})
 				.addButton((button) => {
@@ -284,10 +296,10 @@ export class PainterSettingTab extends PluginSettingTab {
 			ghostClass: 'painter-plugin-ghost',
 			onSort: ({ oldIndex, newIndex }) => {
 				if (typeof oldIndex === "undefined" || typeof newIndex === "undefined") return;
-        const [removed] = this.plugin.settings.highlighterOrder.splice(oldIndex, 1);
+				const [removed] = this.plugin.settings.highlighterOrder.splice(oldIndex, 1);
 				this.plugin.settings.highlighterOrder.splice(newIndex, 0, removed)
-        this.plugin.saveSettings();
-      },
+				this.plugin.saveSettings();
+			},
 		})
 	}
 }
