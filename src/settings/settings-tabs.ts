@@ -46,7 +46,6 @@ export class PainterSettingTab extends PluginSettingTab {
 					.onChange((newMode) => {
 						this.plugin.settings.menuMode = newMode as 'minimal' | 'normal';
 						this.plugin.saveSettings();
-						this.plugin.saveData(this.plugin.settings);
 						this.plugin.refresh();
 					});
 			});
@@ -68,10 +67,24 @@ export class PainterSettingTab extends PluginSettingTab {
 							dispatchEvent(new Event("painter:refreshstyles"));
 						}, 100);
 						this.plugin.saveSettings();
-						this.plugin.saveData(this.plugin.settings);
 						this.display();
 					});
 			});
+
+		new Setting(containerEl)
+			.setName('Additional CSS Selectors to clear')
+			.setDesc(`The "Painter: Clear" command clears all "mark" elements from the current selection. However, you might wish to clear other elements as well. Add CSS Selectors to be cleaned here (one per line)`)
+			.addTextArea(ta => {
+				ta.inputEl.style.resize = 'vertical'
+				ta.setValue(this.plugin.settings.cleanSelectors.join("\n"))
+				ta.onChange(val => {
+					const selectors = val.split("\n").map(i => i.trim()).filter(i => i !== "")
+					this.plugin.settings.cleanSelectors = selectors
+					this.plugin.saveSettings();
+					this.display();
+				})
+			})
+
 
 		const stylesSetting = new Setting(containerEl);
 
@@ -90,7 +103,6 @@ export class PainterSettingTab extends PluginSettingTab {
 					.onChange((highlighterStyle) => {
 						this.plugin.settings.highlighterStyle = highlighterStyle;
 						this.plugin.saveSettings();
-						this.plugin.saveData(this.plugin.settings);
 						this.plugin.refresh();
 					});
 			});

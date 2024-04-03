@@ -76,9 +76,11 @@ export default class Painter extends Plugin {
 		// this is only *reading* the innerHTML, not setting it
 		const currentStr = editor.getSelection();
 		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
-		sandbox.querySelectorAll('mark').forEach(m => {
-			m.replaceWith(...Array.from(m.childNodes))
-		})
+		for (const sel of [...this.settings.cleanSelectors, 'mark']) {
+			sandbox.querySelectorAll(sel).forEach(m => {
+				m.replaceWith(...Array.from(m.childNodes))
+			})
+		}
 		editor.replaceSelection(sandbox.body.innerHTML);
 		editor.focus();
 	};

@@ -22,6 +22,7 @@ export interface HighlightrSettings {
 	highlighters: Highlighters;
 	highlighterOrder: string[];
 	menuMode: 'normal' | 'minimal';
+	cleanSelectors: string[]
 }
 
 // i'm keeping higlightr's keys so settings can be easily migrated
@@ -37,7 +38,8 @@ const DEFAULT_SETTINGS: HighlightrSettings = {
 		"o": "#d08770"
 	},
 	highlighterOrder: [],
-	menuMode: 'normal'
+	menuMode: 'normal',
+	cleanSelectors: []
 };
 
 DEFAULT_SETTINGS.highlighterOrder = Object.keys(DEFAULT_SETTINGS.highlighters);
