@@ -8,7 +8,7 @@ import { createHighlighterIcons } from "./custom-icons";
 
 import { createStyles } from "src/utils/create-style";
 import { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
-import { expandAndWrap, nudgeCursor } from "./transform-text";
+import { nudgeCursor } from "./utils";
 
 type CommandPlot = {
 	char: number;
