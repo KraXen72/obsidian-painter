@@ -2,14 +2,17 @@ import type { EnhancedEditor } from "./settings/settings-types";
 import type { EditorPosition, EditorSelection } from "obsidian";
 import { isURL } from "./utils";
 
-type nudgeOpts = { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
-const nudgeDefaults = { ch: 0, ln: 0, cursor: 'from' } as const
+interface nudgeOpts { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
+const nudgeDefaults: nudgeOpts = { ch: 0, ln: 0, cursor: 'from' } as const
+
+interface wrapOpts { expand?: boolean, moveCursorToEnd?: boolean }
+const wrapDefaults: wrapOpts = { expand: true, moveCursorToEnd: false }
 
 export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults ) {
 	const opts2 = Object.assign(nudgeDefaults, opts)
 	const prevPos = editor.getCursor(opts2.cursor)
 	prevPos.ch += opts2.ch
-	prevPos.line += opts2.ln
+	if (opts2.ln) prevPos.line += opts2.ln
 	editor.setCursor(prevPos)
 }
 
@@ -265,8 +268,9 @@ export class TextTransformer {
 		}
 		return pos;
 	}
-	async wrapSelection(frontMarkup: string, endMarkup: string, editor: EnhancedEditor, expand = true) {
-		function applyMarkup(preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string ) {
+	async wrapSelection(frontMarkup: string, endMarkup: string, opts: wrapOpts) {
+		const opts2 = Object.assign(wrapDefaults, opts)
+		const applyMarkup = (preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string) => {
 			let selectedText = this.editor.getSelection();
 			const so = this.startOffset();
 			let eo = this.endOffset();
@@ -284,7 +288,7 @@ export class TextTransformer {
 					blen++;
 					alen++;
 				}
-				editor.replaceSelection(frontMarkup + selectedText + endMarkup);
+				this.editor.replaceSelection(frontMarkup + selectedText + endMarkup);
 	
 				contentChangeList.push(
 					{ line: preAnchor.line, shift: blen },
@@ -295,9 +299,9 @@ export class TextTransformer {
 			}
 	
 			// Undo Markup (outside selection, inside not necessary as trimmed already)
-			if (this.markupOutsideSel()) {
-				editor.setSelection(this.offToPos(so - blen), this.offToPos(eo + alen));
-				editor.replaceSelection(selectedText);
+			if (this.markupOutsideSel(frontMarkup, endMarkup)) {
+				this.editor.setSelection(this.offToPos(so - blen), this.offToPos(eo + alen));
+				this.editor.replaceSelection(selectedText);
 	
 				contentChangeList.push(
 					{ line: preAnchor.line, shift: -blen },
@@ -307,14 +311,14 @@ export class TextTransformer {
 				preHead.ch -= blen;
 			}
 	
-			if (lineMode === "single") editor.setSelection(preAnchor, preHead);
+			if (lineMode === "single") this.editor.setSelection(preAnchor, preHead);
 		}
 
 		function wrapMultiLine() {
-			const selAnchor = editor.getCursor("from");
+			const selAnchor = this.editor.getCursor("from");
 			selAnchor.ch = 0;
-			const selHead = editor.getCursor("to");
-			selHead.ch = editor.getLine(selHead.line).length;
+			const selHead = this.editor.getCursor("to");
+			selHead.ch = this.editor.getLine(selHead.line).length;
 	
 			if (frontMarkup === "`") { // switch to fenced code instead of inline code
 				frontMarkup = "```";
@@ -330,17 +334,17 @@ export class TextTransformer {
 	
 			// do Markup
 			if (!this.markupOutsideMultiline(selAnchor, selHead)) {
-				editor.setSelection(selAnchor);
-				editor.replaceSelection(frontMarkup + "\n");
+				this.editor.setSelection(selAnchor);
+				this.editor.replaceSelection(frontMarkup + "\n");
 				selHead.line++; // extra line to account for shift from inserting frontMarkup
-				editor.setSelection(selHead);
-				editor.replaceSelection("\n" + endMarkup);
+				this.editor.setSelection(selHead);
+				this.editor.replaceSelection("\n" + endMarkup);
 	
 				// when fenced code, position cursor for language definition
 				if (frontMarkup === "```") {
 					const languageDefPos = selAnchor;
 					languageDefPos.ch = 3;
-					editor.setSelection(languageDefPos);
+					this.editor.setSelection(languageDefPos);
 				}
 			}
 	
@@ -383,21 +387,21 @@ export class TextTransformer {
 		// saves the amount of position shift for each line
 		// used to calculate correct positions for multi-cursor
 		const contentChangeList: contentChange[] = [];
-		const allCursors = editor?.listSelections();
+		const allCursors = this.editor?.listSelections();
 	
 		// sets markup for each cursor/selection
 		for (const sel of allCursors) {
 			// account for shifts in Editor Positions due to applying markup to previous cursors
 			sel.anchor = this.recalibratePos(contentChangeList, sel.anchor);
 			sel.head = this.recalibratePos(contentChangeList, sel.head);
-			editor.setSelection(sel.anchor, sel.head);
+			this.editor.setSelection(sel.anchor, sel.head);
 	
 			// prevent things like triple-click selection from triggering multi-line
 			this.trimSelection(frontMarkup, endMarkup);
 	
 			// run special cases instead
 			if (!this.multiLineSel()) { // wrap single line selection
-				const { anchor: preSelExpAnchor, head: preSelExpHead } = expand 
+				const { anchor: preSelExpAnchor, head: preSelExpHead } = opts2.expand 
 					? this.expandSelection(frontMarkup, endMarkup, false)!
 					: this.getSel();
 				applyMarkup(preSelExpAnchor, preSelExpHead, "single");
@@ -405,11 +409,11 @@ export class TextTransformer {
 				wrapMultiLine();
 			}	else if (this.multiLineSel() && !this.isMultiLineMarkup(frontMarkup)) { // Wrap *each* line of multi-line selection
 				let pointerOff = this.startOffset();
-				const lines = editor.getSelection().split("\n");
+				const lines = this.editor.getSelection().split("\n");
 				// get offsets for each line and apply markup to each
 				for (const line of lines) {
-					editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
-					const { anchor: preSelExpAnchor, head: preSelExpHead } = expand
+					this.editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
+					const { anchor: preSelExpAnchor, head: preSelExpHead } = opts2.expand
 						? this.expandSelection(frontMarkup, endMarkup, false)!
 						: this.getSel();
 	

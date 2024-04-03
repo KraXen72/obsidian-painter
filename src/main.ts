@@ -98,16 +98,17 @@ export default class Painter extends Plugin {
 		const suffix = command.suffix || prefix;
 		const transformer = new TextTransformer(editor)
 
-		if (editor.getSelection().length === 0) { // expand to full word
-			const newSel = transformer.expandSelection(prefix, suffix);
-			if (typeof newSel === "undefined") return;
-			const { anchor, head } = newSel;
-			editor.setSelection(anchor, head)
-		}
+		// if (editor.getSelection().length === 0) { // expand to full word
+		// 	const newSel = transformer.expandSelection(prefix, suffix);
+		// 	if (typeof newSel === "undefined") return;
+		// 	const { anchor, head } = newSel;
+		// 	editor.setSelection(anchor, head)
+		// }
 		transformer.trimSelection(prefix, suffix)
-		//TODO replace with smart wrap later?
-		editor.replaceSelection(`${prefix}${editor.getSelection()}${suffix}`);
-		nudgeCursor(editor, { ch: 1 })
+		transformer.wrapSelection(prefix, suffix, { expand: editor.getSelection().length === 0, moveCursorToEnd: true } )
+
+		// editor.replaceSelection(`${prefix}${editor.getSelection()}${suffix}`);
+		// nudgeCursor(editor, { ch: 1 })
 	};
 
 	generateCommands(passedEditor: EnhancedEditor) {
