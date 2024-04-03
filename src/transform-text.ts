@@ -41,6 +41,17 @@ const IMAGEEXTENSIONS = [ "png", "jpg", "jpeg", "gif", "tiff" ];
 const posEqual = (a: EditorPosition, b: EditorPosition) => a.line === b.line && a.ch === b.ch;
 const rangeEqual = (a: EditorSelection, b: EditorSelection) => posEqual(a.anchor, b.anchor) && posEqual(a.head, b.head);
 
+type nudgeOpts = { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
+const nudgeDefaults = { ch: 0, ln: 0, cursor: 'from' } as const
+
+export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults ) {
+	const opts2 = Object.assign(nudgeDefaults, opts)
+	const prevPos = editor.getCursor('to')
+	prevPos.ch += opts2.ch
+	prevPos.line += opts2.ch
+	editor.setCursor(prevPos)
+}
+
 export async function expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
 	interface contentChange {
 		line: number;
@@ -201,7 +212,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 
 	function expandSelection () {
 		trimSelection();
-		console.log ("before expandSelection", true);
+		console.log("before expandSelection", true);
 
 		// expand to word
 		const preSelExpAnchor = editor.getCursor("from");
@@ -460,7 +471,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 	// saves the amount of position shift for each line
 	// used to calculate correct positions for multi-cursor
 	const contentChangeList: contentChange[] = [];
-	const allCursors = editor.listSelections();
+	const allCursors = editor?.listSelections();
 
 	// sets markup for each cursor/selection
 	allCursors.forEach(sel => {
@@ -508,8 +519,8 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 			
 		}
 
-		// wrap single line selection
-		else if (!multiLineSel()) {
+		
+		else if (!multiLineSel()) { // wrap single line selection
 			console.log ("single line");
 			const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
 			applyMarkup(preSelExpAnchor, preSelExpHead, "single");

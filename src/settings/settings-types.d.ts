@@ -19,6 +19,7 @@ export interface EnhancedEditor extends Editor {
 	cm: CodeMirror.Editor & { coordsAtPos: Function };
 	editorComponent: { tableCell: TableCell | null }
 	containerEl: HTMLElement,
+	editorEl: HTMLElement,
 	cursorCoords: Function;
 	coordsAtPos: Function;
 	hasFocus: () => boolean;
@@ -26,5 +27,5 @@ export interface EnhancedEditor extends Editor {
 }
 
 interface TableCell extends EnhancedEditor {
-	tableCell: undefined
+	tableCell: undefined,
 }

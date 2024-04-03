@@ -42,22 +42,20 @@ const highlighterMenu = (
 	
 	const offset = editor.posToOffset(cursor)
 	let coords: Coords = editor.cm.coordsAtPos(offset)
-
-	// FIXME doesen't properly render the menu in a table editor
-	// i *think* the highlighting works though if done through command? test it
-	// if (coords === null && editor.editorComponent.tableCell !== null) {
-	// 	console.log('tc', editor.cursorCoords, editor.cm.cursorCoords())
-
-	// 	const tableCursor = editor.editorComponent.tableCell.getCursor('from')
-	// 	const tableOffset = editor.editorComponent.tableCell.posToOffset(tableCursor)
-	// 	coords = editor.editorComponent.tableCell.cm.coordsAtPos(tableOffset)
-	// }
+	const tc = editor.editorComponent.tableCell
+	if (tc && tc.editorEl !== null) {
+		const rect = tc.editorEl.getBoundingClientRect()
+		menu.showAtPosition({
+			x: rect.x + 25,
+			y: rect.y + 20
+		})
+	} else {
+		menu.showAtPosition({
+			x: coords.right + 25,
+			y: coords.top + 20,
+		});
+	}
 	
-
-	menu.showAtPosition({
-		x: coords.right + 25,
-		y: coords.top + 20,
-	});
 	menu.dom.querySelectorAll('.menu-item').forEach(mi => {
 		const ic: HTMLElement | null = mi.querySelector('.menu-item-icon')
 		const ti: HTMLElement | null = mi.querySelector('.menu-item-title')

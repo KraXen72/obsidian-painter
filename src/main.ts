@@ -8,6 +8,7 @@ import { createHighlighterIcons } from "./custom-icons";
 
 import { createStyles } from "src/utils/create-style";
 import { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
+import { expandAndWrap, nudgeCursor } from "./transform-text";
 
 type CommandPlot = {
 	char: number;
@@ -94,11 +95,11 @@ export default class HighlightrPlugin extends Plugin {
 		return `<${elem} ${attr}>`
 	}
 
-	generateCommands(editor: Editor) {
+	generateCommands(passedEditor: EnhancedEditor) {
 		for (const highlighterKey of this.settings.highlighterOrder) {
 			const lowerCaseColor = highlighterKey.toLowerCase()
 
-			const applyCommand = (command: CommandPlot, editor: Editor) => {
+			const applyCommand = (command: CommandPlot, editor: EnhancedEditor) => {
 				const selectedText = editor.getSelection();
 				const cursorStart = editor.getCursor("from");
 				const cursorEnd = editor.getCursor("to");
@@ -109,20 +110,6 @@ export default class HighlightrPlugin extends Plugin {
 					selectedText.length > 0
 						? prefix.length + suffix.length + 1
 						: prefix.length;
-				
-				const setCursor = (mode: number) => {
-					editor.setCursor(
-						cursorStart.line + command.line * mode,
-						cursorEnd.ch + cursorPos * mode
-					);
-				};
-
-				const changeCursor = (mode: number) => {
-					editor.setCursor(
-						cursorStart.line + command.line * mode,
-						cursorEnd.ch + (cursorPos * mode + 8)
-					);
-				};
 
 				const prefixStart = {
 					line: cursorStart.line - command.line,
@@ -140,17 +127,15 @@ export default class HighlightrPlugin extends Plugin {
 				const preLast = pre.slice(-1);
 				const prefixLast = prefix.trimStart().slice(-1);
 
-				// console.log(editor.setCursor)
-				// console.table(command)
-				console.table({ selectedText, cursorStart, cursorEnd, cursorPos, prefix, prefixStart, suffix, suffixEnd, pre, suf })
-				if (suf === suffix.trimEnd() && (preLast === prefixLast && selectedText)) {
-					console.log('replacing range')
-					editor.replaceRange(selectedText, prefixStart, suffixEnd);
-					return changeCursor(-1);
-				}
-
+				// console.table({ selectedText, cursorStart, cursorEnd, cursorPos, prefix, prefixStart, suffix, suffixEnd, pre, suf })
+				// if (suf === suffix.trimEnd() && (preLast === prefixLast && selectedText)) {
+				// 	console.log('replacing range')
+				// 	editor.replaceRange(selectedText, prefixStart, suffixEnd);
+				// 	return changeCursor(-1);
+				// }
 				editor.replaceSelection(`${prefix}${selectedText}${suffix}`);
-				return setCursor(1);
+				nudgeCursor(editor, { ch: 1 })
+				// return setCursor(1);
 			};
 
 			const commandsMap: commandsPlot = {
@@ -167,8 +152,9 @@ export default class HighlightrPlugin extends Plugin {
 					id: `paint-${lowerCaseColor}`,
 					name: highlighterKey,
 					icon: `painter-icon-${lowerCaseColor}`,
-					editorCallback: async (editor: Editor) => {
+					editorCallback: async (editor: EnhancedEditor) => {
 						applyCommand(commandsMap[type], editor);
+						// expandAndWrap(commandsMap[type].prefix, commandsMap[type].suffix, editor);
 					},
 				});
 			}
