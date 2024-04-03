@@ -5,33 +5,36 @@
 ![normal-menu](./screens/menu-normal.png)  
 ![commands](./screens/commands.png)
 
-Rewrite/fork of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin), utilizing a lot of it's code - credit to @chetachiezikeuzor
-Inspired by my [css snippet & data.json](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/61) to use Highlightr to change text color.
+Inspired by my [css snippet & data.json](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/61) to use Highlightr to change text color.  
+The aim of this plugin is to support most features of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) as well as changing of the text color.  
 
-The aim of this plugin is to support most features of [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) as well as changing of the text color
+## Credits
+- [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license
+  - for most of the original source code (most has been rewritten)
+- [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys) released under [MIT](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/blob/master/LICENSE) license 
+  - for smart text modification logic
 
 ## Improvements over original plugin
-- clean up file structure & move to esbuild instead of rollup
+- smarter selection (adapted from [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys))
+  - `inline code` signifies the part of the text being selected. `|` is a cursor without selection.
+  - **auto-select word:** "hello t`|`here world!" => "hello `there` world!"
+  - **trim selection to nearest word:** "what` is` up?" => "what `is` up?"
+  - You are still able to paint a certain part of a word: "h`ell`o" => "h`ell`o"
+- added `text-color` higlight option
+- added `minimal` menu style - only show icons in one line
+  - added `title` attributes to icons in menu (helps in minimal menu)		
+- added `Clear` (formerly `Remove higlight`) to the menu as well
 - removed a bunch of unnecessary code & styles, overall cleanup & rewrite
   - removed a bunch of custom icons in favor of normal obsidian icons	
   - removed `wait()` calls (promise + settimeout)	
 - remove dependencies:
   - `pickr` - replaced with obsidian's native color picker & an alpha slider
 - new svg icon (modified lucide highlighter icon)
-- renamed command ids for consistency
 - highlightr styles now use css variables instead of hardcoded values
 - replaced regex-based eraseHighlight with a `DOMParser` approach
-- added `text-color` higlight option
-- added `minimal` menu style - only show icons in one line
-  - added `title` attributes to icons in menu (helps in minimal menu)		
-- added `Clear color` (formerly remove higlight) to the menu as well
-- added better dynamic highligt preview in settings (for now uses innerHTML, will be changed later.)
-
-## Credits
-- [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license
-  - for most of the original source code (most has been rewritten)
-- [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys) released under [MIT](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/blob/master/LICENSE) license 
-  - for some text modification logic
+- added better dynamic highligt preview in settings
+- renamed command ids for consistency
+- clean up file structure & move to esbuild instead of rollup
 
 ## TODO before release on Plugin Store
 - [ ] two way binding for color inputs (editing input box updates color picker/slider)

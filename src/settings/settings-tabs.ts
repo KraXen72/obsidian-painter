@@ -15,7 +15,7 @@ import { numToHexSuffix, sample } from "src/utils";
 import { customHLIcon } from "src/custom-icons";
 import Sortable from 'sortablejs';
 
-export class HighlightrSettingTab extends PluginSettingTab {
+export class PainterSettingTab extends PluginSettingTab {
 	plugin: Painter;
 	appendMethod: string;
 
@@ -35,7 +35,6 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		authorP.createEl('span', { text: '. Rewritten & extended by ' })
 		authorP.createEl('a', { text: 'KraXen72 🧉', href: 'https://github.com/KraXen72' })
 		authorP.createEl('span', { text: '.' })
-		containerEl.createEl("h2", { text: "Plugin Settings" });
 
 		new Setting(containerEl)
 			.setName('Menu Mode')
@@ -167,7 +166,7 @@ export class HighlightrSettingTab extends PluginSettingTab {
 		const colPreviewWrap = addColorSetting.controlEl.createDiv({ cls: 'painter-plugin-color-preview' })
 		colPreviewEl = colPreviewWrap.createDiv({ cls: 'painter-plugin-color-preview2' })
 		
-		const saveButton = new ButtonComponent(addColorSetting.controlEl)
+		new ButtonComponent(addColorSetting.controlEl)
 			.setClass("painter-plugin-settings-button")
 			.setClass("painter-plugin-settings-button-add")
 			.setIcon("save")

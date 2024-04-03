@@ -27,7 +27,7 @@ export interface HighlightrSettings {
 // i'm keeping higlightr's keys so settings can be easily migrated
 const DEFAULT_SETTINGS: HighlightrSettings = {
 	highlighterStyle: "none",
-	highlighterMethods: "inline-styles",
+	highlighterMethods: "css-classes",
 	highlighters: {
 		"r": "#bf616a",
 		"g": "#a3be8c",

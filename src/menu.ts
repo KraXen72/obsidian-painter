@@ -34,7 +34,7 @@ const highlighterMenu = (
 	if (editor.getSelection()) {
 		menu.addSeparator()
 		menu.addItem(item => {
-			item.setTitle('Clear color')
+			item.setTitle('Clear')
 			item.setIcon('eraser')
 			item.onClick(() => clearColorFn(editor))
 		})

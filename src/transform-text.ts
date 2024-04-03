@@ -2,9 +2,22 @@ import type { EnhancedEditor } from "./settings/settings-types";
 import type { EditorPosition, EditorSelection } from "obsidian";
 import { isURL } from "./utils";
 
+type nudgeOpts = { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
+const nudgeDefaults = { ch: 0, ln: 0, cursor: 'from' } as const
+
+export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults ) {
+	const opts2 = Object.assign(nudgeDefaults, opts)
+	const prevPos = editor.getCursor(opts2.cursor)
+	prevPos.ch += opts2.ch
+	prevPos.line += opts2.ln
+	editor.setCursor(prevPos)
+}
+
 // credit for original code: https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys (modified)
-// turned it into a class which remembers the editor instance it was initialized with
-// it might be overkill but i cannot be bothered to pass in the editor every time
+// i will probably clean this up later since i don't even need so much functionality
+
+// for now i only use this when nothing is selected, since people likely want to highlight a certain part of a word
+// instead of "smart" highlighting the whole word.
 
 const TRIMBEFORE = ["\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t"];
 
@@ -46,10 +59,6 @@ interface contentChange {
 	line: number;
 	shift: number;
 }
-
-// TODO remove unneeded util functions
-// TODO Fix missing this.references
-// TODO make expandSelection work from outside
 
 export class TextTransformer {
 	editor: EnhancedEditor
@@ -123,7 +132,6 @@ export class TextTransformer {
 
 		// Inline-Code: use only space as delimiter
 		if (frontMarkup === "`" || frontMarkup === "$") {
-			console.log ("Getting Code under Cursor");
 			const so = this.editor.posToOffset(ep);
 			let charAfter, charBefore;
 			let [i, j, endReached, startReached] = [0, 0, false, false];
@@ -148,6 +156,9 @@ export class TextTransformer {
 
 		return { anchor: startPos, head: endPos };
 	}
+	/**
+	 * afaik removes whitespace at the start & end of selection
+	 */
 	trimSelection(frontMarkup: string, endMarkup: string) {
 		let trimAfter = TRIMAFTER;
 		let trimBefore = TRIMBEFORE;
@@ -163,7 +174,6 @@ export class TextTransformer {
 
 		let selection = this.editor.getSelection();
 		let so = this.startOffset();
-		console.log ("before trim", true);
 
 		// before
 		let trimFinished = false;
@@ -199,11 +209,16 @@ export class TextTransformer {
 		if (blockID) selection = selection.slice(0, -blockID[0].length);
 
 		this.editor.setSelection(this.offToPos(so), this.offToPos(so + selection.length));
-		console.log ("after trim", true);
 	}
-	expandSelection(frontMarkup: string, endMarkup: string) {
+
+	/**
+	 * expands the selection, and then reverts it?
+	 * @param frontMarkup prefix
+	 * @param endMarkup suffix
+	 * @param pure set this to false if you are using expandSelection internally in TextExtractor?
+	 */
+	expandSelection(frontMarkup: string, endMarkup: string, pure = true) {
 		this.trimSelection(frontMarkup, endMarkup);
-		console.log("before expandSelection", true);
 
 		// expand to word
 		const preSelExpAnchor = this.editor.getCursor("from");
@@ -224,7 +239,8 @@ export class TextTransformer {
 		}
 
 		this.editor.setSelection(firstWordRange.anchor, lastWordRange.head);
-		console.log ("after expandSelection", true);
+		if (pure) return { anchor: firstWordRange.anchor, head: lastWordRange.head };
+		// console.log("after expandSelection", this.editor.getSelection());
 		this.trimSelection(frontMarkup, endMarkup);
 
 		// has to come after trimming to include things like brackets
@@ -304,8 +320,7 @@ export class TextTransformer {
 				endMarkup = "```";
 				alen = 3;
 				blen = 3;
-			}
-			else if (frontMarkup === "$") { // switch to block mathjax syntax instead of inline mathjax
+			} else if (frontMarkup === "$") { // switch to block mathjax syntax instead of inline mathjax
 				frontMarkup = "$$";
 				endMarkup = "$$";
 				alen = 2;
@@ -349,7 +364,7 @@ export class TextTransformer {
 		}
 	
 		// MAIN
-		console.log("painter: text-transform (smarter-md-hotkeys) triggered");
+		// console.log("painter: text-transform (smarter-md-hotkeys) triggered");
 	
 		// does not have to occur in multi-cursor loop since it already works
 		// on every cursor
@@ -381,21 +396,17 @@ export class TextTransformer {
 	
 			// run special cases instead
 			if (!this.multiLineSel()) { // wrap single line selection
-				console.log("single line");
-				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup);
+				const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup, false)!;
 				applyMarkup(preSelExpAnchor, preSelExpHead, "single");
 			}	else if (this.multiLineSel() && this.isMultiLineMarkup(frontMarkup)) { // Wrap multi-line selection
-				console.log("multiline Wrap");
 				wrapMultiLine();
 			}	else if (this.multiLineSel() && !this.isMultiLineMarkup(frontMarkup)) { // Wrap *each* line of multi-line selection
 				let pointerOff = this.startOffset();
 				const lines = editor.getSelection().split("\n");
-				console.log("lines: " + lines.length.toString());
-	
 				// get offsets for each line and apply markup to each
 				for (const line of lines) {
 					editor.setSelection(this.offToPos(pointerOff), this.offToPos(pointerOff + line.length));
-					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup);
+					const { anchor: preSelExpAnchor, head: preSelExpHead } = this.expandSelection(frontMarkup, endMarkup, false)!;
 	
 					// Move Pointer to next line
 					pointerOff += line.length + 1; // +1 to account for line break

@@ -18,7 +18,7 @@ export default function contextMenu(
 	menu.addItem((item: MenuItem & { dom: HTMLElement }) => {
 		item.dom.addClass("painter-plugin-menu-button");
 		item
-			.setTitle("Color")
+			.setTitle("Paint")
 			.setIcon("painter-icon")
 			.onClick(async () => highlighterMenu(app, settings, editor, plugin.eraseHighlight.bind(plugin)));
 	});
@@ -26,7 +26,7 @@ export default function contextMenu(
 	if (!selection) return;
 	menu.addItem((item) => {
 		item
-			.setTitle("Clear color")
+			.setTitle("Clear")
 			.setIcon("eraser")
 			.onClick(() => {
 				if (editor.getSelection()) plugin.eraseHighlight(editor);

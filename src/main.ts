@@ -1,24 +1,20 @@
-import { Editor, Menu, Plugin, PluginManifest } from "obsidian";
-import { HighlightrSettingTab } from "./settings/settings-tabs";
-import { HIGHLIGHTER_METHODS, HIGHLIGHTER_STYLES, HighlightrSettings } from "./settings/settings-data";
-import DEFAULT_SETTINGS from "./settings/settings-data";
+import { Plugin } from "obsidian";
+import type { PluginManifest, Menu, Editor } from "obsidian";
+import type { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
+
+import { PainterSettingTab } from "./settings/settings-tabs";
+import DEFAULT_SETTINGS, { HIGHLIGHTER_STYLES, HighlightrSettings } from "./settings/settings-data";
 import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
 import { createHighlighterIcons } from "./custom-icons";
-
-import { createStyles } from "src/utils/create-style";
-import { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
-import { nudgeCursor } from "./utils";
+import { createStyles } from "./utils/create-style";
+import { TextTransformer, nudgeCursor } from "./transform-text";
 
 type CommandPlot = {
 	char: number;
 	line: number;
 	prefix: string;
 	suffix: string;
-};
-
-type commandsPlot = {
-	[key: string]: CommandPlot;
 };
 
 export default class Painter extends Plugin {
@@ -42,8 +38,8 @@ export default class Painter extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", this.handleHighlighterInContextMenu.bind(this))
 		);
-
-		this.addSettingTab(new HighlightrSettingTab(this.app, this));
+		
+		this.addSettingTab(new PainterSettingTab(this.app, this));
 
 		this.addCommand({
 			id: "open-menu",
@@ -95,73 +91,47 @@ export default class Painter extends Plugin {
 		return `<${elem} ${attr}>`
 	}
 
+	applyCommand(command: CommandPlot, editor: EnhancedEditor) {
+		// const cursorStart = editor.getCursor("from");
+		// const cursorEnd = editor.getCursor("to");
+		const prefix = command.prefix;
+		const suffix = command.suffix || prefix;
+		const transformer = new TextTransformer(editor)
+
+		if (editor.getSelection().length === 0) { // expand to full word
+			const newSel = transformer.expandSelection(prefix, suffix);
+			if (typeof newSel === "undefined") return;
+			const { anchor, head } = newSel;
+			editor.setSelection(anchor, head)
+		}
+		transformer.trimSelection(prefix, suffix)
+		//TODO replace with smart wrap later?
+		editor.replaceSelection(`${prefix}${editor.getSelection()}${suffix}`);
+		nudgeCursor(editor, { ch: 1 })
+	};
+
 	generateCommands(passedEditor: EnhancedEditor) {
 		for (const highlighterKey of this.settings.highlighterOrder) {
 			const lowerCaseColor = highlighterKey.toLowerCase()
-
-			const applyCommand = (command: CommandPlot, editor: EnhancedEditor) => {
-				const selectedText = editor.getSelection();
-				const cursorStart = editor.getCursor("from");
-				const cursorEnd = editor.getCursor("to");
-				const prefix = command.prefix;
-				const suffix = command.suffix || prefix;
-
-				const cursorPos =
-					selectedText.length > 0
-						? prefix.length + suffix.length + 1
-						: prefix.length;
-
-				const prefixStart = {
-					line: cursorStart.line - command.line,
-					ch: cursorStart.ch - prefix.length,
-				};
-				
-				const suffixEnd = {
-					line: cursorStart.line + command.line,
-					ch: cursorEnd.ch + suffix.length,
-				};
-				
-				const pre = editor.getRange(prefixStart, cursorStart);
-				const suf = editor.getRange(cursorEnd, suffixEnd);
-
-				const preLast = pre.slice(-1);
-				const prefixLast = prefix.trimStart().slice(-1);
-
-				// console.table({ selectedText, cursorStart, cursorEnd, cursorPos, prefix, prefixStart, suffix, suffixEnd, pre, suf })
-				// if (suf === suffix.trimEnd() && (preLast === prefixLast && selectedText)) {
-				// 	console.log('replacing range')
-				// 	editor.replaceRange(selectedText, prefixStart, suffixEnd);
-				// 	return changeCursor(-1);
-				// }
-				editor.replaceSelection(`${prefix}${selectedText}${suffix}`);
-				nudgeCursor(editor, { ch: 1 })
-				// return setCursor(1);
-			};
-
-			const commandsMap: commandsPlot = {
-				highlight: {
-					char: 0, // 34
-					line: 0,
-					prefix: this.createPrefix('mark', highlighterKey, this.settings.highlighterMethods, this.settings.highlighterStyle),
-					suffix: "</mark>",
-				},
-			};
-
-			for (const type in commandsMap) {
-				this.addCommand({
-					id: `paint-${lowerCaseColor}`,
-					name: highlighterKey,
-					icon: `painter-icon-${lowerCaseColor}`,
-					editorCallback: async (editor: EnhancedEditor) => {
-						applyCommand(commandsMap[type], editor);
-						// expandAndWrap(commandsMap[type].prefix, commandsMap[type].suffix, editor);
-					},
-				});
+			const command = {
+				char: 0,
+				line: 0,
+				prefix: this.createPrefix('mark', highlighterKey, this.settings.highlighterMethods, this.settings.highlighterStyle),
+				suffix: "</mark>",
 			}
 
 			this.addCommand({
+				id: `paint-${lowerCaseColor}`,
+				name: highlighterKey,
+				icon: `painter-icon-${lowerCaseColor}`,
+				editorCallback: async (editor: EnhancedEditor) => {
+					this.applyCommand(command, editor);
+				},
+			});
+
+			this.addCommand({
 				id: "remove-highlight",
-				name: "Clear color",
+				name: "Clear",
 				icon: "eraser",
 				editorCallback: async (editor: Editor) => {
 					this.eraseHighlight(editor);
