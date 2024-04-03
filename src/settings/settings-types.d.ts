@@ -16,7 +16,7 @@ export interface EnhancedApp extends App {
 }
 
 export interface EnhancedEditor extends Editor {
-	cm: CodeMirror.Editor & { coordsAtPos: Function };
+	cm: CMEditor
 	editorComponent: { tableCell: TableCell | null }
 	containerEl: HTMLElement,
 	editorEl: HTMLElement,
@@ -28,4 +28,16 @@ export interface EnhancedEditor extends Editor {
 
 interface TableCell extends EnhancedEditor {
 	tableCell: undefined,
+}
+
+interface CMEditor extends CodeMirror.Editor {
+	coordsAtPos: Function,
+	viewState: {
+		state: {
+			selection: {
+				from: number,
+				to: number
+			}
+		}
+	}
 }

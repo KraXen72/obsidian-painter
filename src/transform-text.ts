@@ -314,7 +314,6 @@ export class TextTransformer {
 			if (lineMode === "single") {
 				if (opts2.moveCursorToEnd) {
 					nudgeCursor(this.editor, { ch: 1 })
-					console.log("aaa", this.editor.getCursor())
 				} else {
 					this.editor.setSelection(preAnchor, preHead);
 				}
