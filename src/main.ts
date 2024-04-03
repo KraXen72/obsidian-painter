@@ -8,7 +8,7 @@ import contextMenu from "./context-menu";
 import highlighterMenu from "./menu";
 import { createHighlighterIcons } from "./custom-icons";
 import { createStyles, removeStyles } from "./utils/create-style";
-import { TextTransformer, nudgeCursor } from "./transform-text";
+import { TextTransformer } from "./transform-text";
 
 type CommandPlot = {
 	char: number;
