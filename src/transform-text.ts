@@ -48,15 +48,39 @@ export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefau
 	const opts2 = Object.assign(nudgeDefaults, opts)
 	const prevPos = editor.getCursor('to')
 	prevPos.ch += opts2.ch
-	prevPos.line += opts2.ch
+	prevPos.line += opts2.ln
 	editor.setCursor(prevPos)
 }
 
-export async function expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
-	interface contentChange {
+interface contentChange {
 		line: number;
 		shift: number;
 	}
+
+export function expandSelection() {
+	trimSelection();
+	console.log("before expandSelection", true);
+
+	// expand to word
+	const preSelExpAnchor = editor.getCursor("from");
+	const preSelExpHead = editor.getCursor("to");
+
+	const firstWordRange = textUnderCursor(preSelExpAnchor) as CodeMirror.Range;
+	let lastWordRange = textUnderCursor(preSelExpHead) as CodeMirror.Range;
+
+	// Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
+	if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0) {
+		const lastWordRangeInner = textUnderCursor({
+			...preSelExpHead,
+			ch: preSelExpHead.ch - 1,
+		}) as CodeMirror.Range;
+		// if the result of last word range is not the same as the result of
+		// head going back one character, use the inner result
+		if (!rangeEqual(lastWordRange, lastWordRangeInner)) lastWordRange = lastWordRangeInner;
+	}
+}
+
+export async function expandAndWrap(frontMarkup: string, endMarkup: string, editor: EnhancedEditor) {
 
 	const startOffset = () => editor.posToOffset(editor.getCursor("from"));
 	const endOffset = () => editor.posToOffset(editor.getCursor("to"));
@@ -210,28 +234,6 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		console.log("after trim", true);
 	}
 
-	function expandSelection() {
-		trimSelection();
-		console.log("before expandSelection", true);
-
-		// expand to word
-		const preSelExpAnchor = editor.getCursor("from");
-		const preSelExpHead = editor.getCursor("to");
-
-		const firstWordRange = textUnderCursor(preSelExpAnchor) as CodeMirror.Range;
-		let lastWordRange = textUnderCursor(preSelExpHead) as CodeMirror.Range;
-
-		// Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
-		if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0) {
-			const lastWordRangeInner = textUnderCursor({
-				...preSelExpHead,
-				ch: preSelExpHead.ch - 1,
-			}) as CodeMirror.Range;
-			// if the result of last word range is not the same as the result of
-			// head going back one character, use the inner result
-			if (!rangeEqual(lastWordRange, lastWordRangeInner)) lastWordRange = lastWordRangeInner;
-		}
-
 		editor.setSelection(firstWordRange.anchor, lastWordRange.head);
 		console.log("after expandSelection", true);
 		trimSelection();
@@ -360,95 +362,7 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		}
 		return [frontMarkup_, endMarkup_];
 	}
-
-	function smartDelete() {
-		// expand selection to prevent double spaces after deletion
-		if (isOutsideSel(" ", "")) {
-			const anchor = editor.getCursor("from");
-			const head = editor.getCursor("to");
-			if (anchor.ch) anchor.ch--; // do not apply to first line position
-			editor.setSelection(anchor, head);
-		}
-
-		// delete
-		editor.replaceSelection("");
-	}
-
-	function smartCaseSwitch(preAnchor: EditorPosition, preHead: EditorPosition) {
-		function sentenceCase(str: string) {
-			// Move i to index of first letter (using this trick: https://stackoverflow.com/a/32567789)
-			let i = 0;
-			while (str.charAt(i).toLowerCase() === str.charAt(i).toUpperCase()) {
-				i++;
-				if (i > str.length) break;
-			}
-			return str.charAt(i).toUpperCase() + str.slice(i + 1).toLowerCase();
-		}
-
-		let sel = editor.getSelection();
-
-		// Other/Lower → Sentence, Sentence → Upper, Upper → Lower
-		if (sel === sel.toLowerCase()) sel = sentenceCase(sel);
-		else if (sel === sentenceCase(sel)) sel = sel.toUpperCase();
-		else if (sel === sel.toUpperCase()) sel = sel.toLowerCase();
-		else sel = sentenceCase(sel);
-
-		editor.replaceSelection(sel);
-		editor.setSelection(preAnchor, preHead);
-	}
-
-	// required to not apply some changes at the end of the function
 	let doIt = true;
-	// new parameters, line number et column from the loop before on multilines
-	function smartHeading(direction: string, lineNumber = 0, column = 0) {
-		// used later to check if we are multilines. if so lineNumb is defined
-		const multiLines = Boolean(lineNumber);
-		// if single line get variable else we already have them 
-		if (lineNumber === 0) {
-			lineNumber = editor.getCursor("head").line;
-			column = editor.getCursor("head").ch;
-		}
-
-		const lineContent = editor.getLine(lineNumber);
-		const hasHeading = lineContent.match(/^#{1,6}(?= )/);
-		let currentHeadingLvl;
-		let newLineContent;
-		let newColumn;
-
-		if (direction === "increase" && hasHeading) {
-			currentHeadingLvl = hasHeading[0];
-			// else if header >6 and not mutiline,ok. else multiline don't doIt  
-			if (currentHeadingLvl.length < 6) {
-				newLineContent = "#" + lineContent;
-				newColumn = column + 1;
-			} else if (multiLines === false) {
-				newLineContent = lineContent.slice(7);
-				if (column > 6) newColumn = column - 7;
-				else newColumn = 0;
-			} else doIt = false;
-		} else if (direction === "increase" && !hasHeading) {
-			newLineContent = "# " + lineContent;
-			newColumn = column + 2;
-		} else if (direction === "decrease" && hasHeading) {
-			currentHeadingLvl = hasHeading[0];
-			// same with decrease
-			if (currentHeadingLvl.length > 1) {
-				newLineContent = lineContent.slice(1);
-				newColumn = column - 1;
-			} else if (multiLines === false) {
-				newLineContent = lineContent.slice(2);
-				newColumn = column - 2;
-			} else doIt = false;
-		} else if (direction === "decrease" && !hasHeading) {
-			newLineContent = "###### " + lineContent;
-			newColumn = column + 7;
-		}
-		// if doIt we can do this
-		if (doIt && newLineContent) {
-			editor.setLine(lineNumber, newLineContent);
-			editor.setCursor(lineNumber, newColumn);
-		}
-	}
 
 	// MAIN
 	//-------------------------------------------------------------------
@@ -462,7 +376,6 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		return;
 	}
 
-	// TODO: remove this
 	// eslint-disable-next-line require-atomic-updates
 	if (endMarkup === "]()") [frontMarkup, endMarkup] = await insertURLtoMDLink();
 	let blen = frontMarkup.length;
@@ -484,54 +397,14 @@ export async function expandAndWrap(frontMarkup: string, endMarkup: string, edit
 		trimSelection();
 
 		// run special cases instead
-		if (frontMarkup === "delete") {
-			console.log("Smart Delete");
-			expandSelection();
-			smartDelete();
-		}
-		else if (frontMarkup === "case-switch") {
-			console.log("Smart Case Switch");
-			const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
-			smartCaseSwitch(preSelExpAnchor, preSelExpHead);
-		} else if (frontMarkup === "heading") {
-			console.log("Smart Toggle Heading");
-			// get selection range and check if several lines
-			const selected = editor.getSelection();
-			if (selected && selected.includes("\n")) {
-				const { line: from, ch: col0 } = editor.getCursor("from");
-				const { line: to, ch: col1 } = editor.getCursor("to");
-				// for each line in range if header apply smartHeading
-				Array.from({ length: to - from + 1 }, (x, i) => {
-					const lineNumber = from + i;
-					const lineContent = editor.getLine(from + i);
-					if (lineContent.match(/^#{1,6}(?= )/)) {
-						smartHeading(endMarkup, lineNumber, col1);
-						// keep selection on each loop
-						editor.setSelection(
-							{ line: from, ch: col0 },
-							{ line: to, ch: col1 }
-						);
-					}
-				});
-				// 1 line smartHeading
-			} else
-				smartHeading(endMarkup);
-
-		}
-
-
-		else if (!multiLineSel()) { // wrap single line selection
+		if (!multiLineSel()) { // wrap single line selection
 			console.log("single line");
 			const { anchor: preSelExpAnchor, head: preSelExpHead } = expandSelection();
 			applyMarkup(preSelExpAnchor, preSelExpHead, "single");
-		}
-		// Wrap multi-line selection
-		else if (multiLineSel() && isMultiLineMarkup()) {
+		}	else if (multiLineSel() && isMultiLineMarkup()) { // Wrap multi-line selection
 			console.log("Multiline Wrap");
 			wrapMultiLine();
-		}
-		// Wrap *each* line of multi-line selection
-		else if (multiLineSel() && !isMultiLineMarkup()) {
+		}	else if (multiLineSel() && !isMultiLineMarkup()) { // Wrap *each* line of multi-line selection
 			let pointerOff = startOffset();
 			const lines = editor.getSelection().split("\n");
 			console.log("lines: " + lines.length.toString());
