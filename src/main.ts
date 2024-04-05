@@ -9,6 +9,7 @@ import contextMenu from "./context-menu";
 import { createHighlighterIcons } from "./custom-icons";
 import { createStyles, removeStyles } from "./utils/create-style";
 import TextTransformer from "./transform-text";
+import { actionClear, actionMenu } from "./constants";
 
 type CommandPlot = {
 	char: number;
@@ -43,7 +44,7 @@ export default class Painter extends Plugin {
 
 		this.addCommand({
 			id: "open-menu",
-			name: "Open Painter Menu",
+			name: actionMenu,
 			icon: "painter-icon",
 			editorCallback: (editor: EnhancedEditor) => {
 				if (document.querySelector(".menu.painter-plugin-menu-container")) return;
@@ -146,7 +147,7 @@ export default class Painter extends Plugin {
 
 			this.addCommand({
 				id: "remove-highlight",
-				name: "Clear",
+				name: actionClear,
 				icon: "eraser",
 				editorCallback: async (editor: Editor) => {
 					this.eraseHighlight(editor);

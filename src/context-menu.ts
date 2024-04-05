@@ -4,6 +4,7 @@ import { HighlightrSettings } from "./settings/settings-data";
 import highlighterMenu from "./menu";
 import type { EnhancedApp, EnhancedEditor } from "./settings/settings-types";
 import type { MenuItem } from "obsidian";
+import { actionClear, actionPaint } from "./constants";
 
 export default function contextMenu(
 	app: EnhancedApp,
@@ -18,7 +19,7 @@ export default function contextMenu(
 	menu.addItem((item: MenuItem & { dom: HTMLElement }) => {
 		item.dom.addClass("painter-plugin-menu-button");
 		item
-			.setTitle("Paint")
+			.setTitle(actionPaint)
 			.setIcon("painter-icon")
 			.onClick(async () => highlighterMenu(app, settings, editor, plugin.eraseHighlight.bind(plugin)));
 	});
@@ -26,7 +27,7 @@ export default function contextMenu(
 	if (!selection) return;
 	menu.addItem((item) => {
 		item
-			.setTitle("Clear")
+			.setTitle(actionClear)
 			.setIcon("eraser")
 			.onClick(() => {
 				if (editor.getSelection()) plugin.eraseHighlight(editor);

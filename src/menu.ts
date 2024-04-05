@@ -6,6 +6,7 @@ import type {
 	EnhancedEditor,
 	EnhancedMenu,
 } from "./settings/settings-types";
+import { actionClear } from "./constants";
 
 const highlighterMenu = (
 	app: EnhancedApp,
@@ -34,7 +35,7 @@ const highlighterMenu = (
 	if (editor.getSelection()) {
 		menu.addSeparator()
 		menu.addItem(item => {
-			item.setTitle('Clear')
+			item.setTitle(actionClear)
 			item.setIcon('eraser')
 			item.onClick(() => clearColorFn(editor))
 		})
