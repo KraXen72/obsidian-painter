@@ -32,7 +32,7 @@ export function clearSelectionOfSelectors(editor: Editor, selectors: string[], p
 	const currentStr = editor.getSelection();
 	const sandbox: Document = this.parser.parseFromString(currentStr, 'text/html')
 
-	// this function sometimes introduces some wierdness when trying to clean stuff it doesen't need to
+	// this function sometimes introduces some wierdness when trying to clean a selection it doesen't need to
 	// better to skip cleaning entirely if unneeded
 	let canSkip = true
 	for (const sel of selectors) {
