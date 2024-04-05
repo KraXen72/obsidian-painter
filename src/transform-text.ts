@@ -6,7 +6,7 @@
 // https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys
 
 import type { EnhancedEditor } from "./settings/settings-types";
-import type { EditorPosition, EditorSelection } from "obsidian";
+import type { Editor, EditorPosition, EditorSelection } from "obsidian";
 import { isURL } from "./utils";
 
 interface nudgeOpts { ch: number, ln?: number, cursor?: 'from' | 'to' | 'head' | 'anchor' }
@@ -21,6 +21,40 @@ export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefau
 	prevPos.ch += opts2.ch
 	if (opts2.ln) prevPos.line += opts2.ln
 	editor.setCursor(prevPos)
+}
+
+/**
+ * remove unwanted HTML elements (by CSS Selectors) from the editor's selection
+ * uses a DOMParser to create a sandbox, then removes unwanted elements and replaces the editor selection
+ */
+export function clearSelectionOfSelectors(editor: Editor, selectors: string[], preserveSelection = false) {
+	const oldHead = editor.getCursor('head')
+	const currentStr = editor.getSelection();
+	const sandbox: Document = this.parser.parseFromString(currentStr, 'text/html')
+
+	// this function sometimes introduces some wierdness when trying to clean stuff it doesen't need to
+	// better to skip cleaning entirely if unneeded
+	let canSkip = true
+	for (const sel of selectors) {
+		if (sandbox.querySelectorAll(sel).length > 0) {
+			canSkip = false
+			break;
+		}
+	}
+	if (canSkip) return;
+
+	for (const sel of selectors) {
+		sandbox.querySelectorAll(sel).forEach(sel => {
+			sel.replaceWith(...Array.from(sel.childNodes))
+		})
+	}
+
+	// this is only *reading* the sandbox innerHTML, not setting it
+	const replacement = sandbox.body.innerHTML
+	editor.replaceSelection(replacement);
+
+	if (!editor.hasFocus()) editor.focus();
+	if (preserveSelection) editor.setSelection(oldHead, editor.getCursor('head'));
 }
 
 const TRIMBEFORE = ["\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t"];
@@ -253,12 +287,14 @@ export default class TextTransformer {
 			? { anchor: firstWordRange.anchor, head: lastWordRange.head }
 			: { anchor: preSelExpAnchor, head: preSelExpHead }
 	}
+
 	recalibratePos(contentChangeList: contentChange[], pos: EditorPosition) {
 		for (const change of contentChangeList) {
 			if (pos.line === change.line) pos.ch += change.shift;
 		}
 		return pos;
 	}
+
 	async insertURLtoMDLink(frontMarkup: string, endMarkup: string) {
 		const clipboardText = (await navigator.clipboard.readText()).trim();
 
@@ -272,6 +308,7 @@ export default class TextTransformer {
 		return [frontMarkup_, endMarkup_];
 	}
 
+	/** main wrapping function */
 	async wrapSelection(frontMarkup: string, endMarkup: string, opts: wrapOpts) {
 		const opts2 = Object.assign(wrapDefaults, opts)
 		const applyMarkup = (preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string, cleanupSel = true) => {
@@ -423,6 +460,5 @@ export default class TextTransformer {
 				}
 			}
 		}
-
 	}
 }

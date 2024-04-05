@@ -8,7 +8,7 @@ import highlighterMenu from "./menu";
 import contextMenu from "./context-menu";
 import { createHighlighterIcons } from "./custom-icons";
 import { createStyles, removeStyles } from "./utils/create-style";
-import TextTransformer from "./transform-text";
+import TextTransformer, { clearSelectionOfSelectors } from "./transform-text";
 import { actionClear, actionMenu } from "./constants";
 
 type CommandPlot = {
@@ -70,39 +70,9 @@ export default class Painter extends Plugin {
 			createStyles(settings);
 		}
 	}
-
-	clearSelectionOfSelectors(editor: Editor, selectors: string[], preserveSelection = false) {
-		// to remove unwanted elements, we use DOMParser to create a sandbox
-		// then, remove unwanted elements & read the result to set it back
-		// this is only *reading* the innerHTML, not setting it
-		const oldHead = editor.getCursor('head')
-		const currentStr = editor.getSelection();
-		const sandbox = this.parser.parseFromString(currentStr, 'text/html')
-
-		// this function introduces some wierdness when trying to clean stuff it doesen't need to
-		// better to skip cleaning entirely if unneeded
-		let canSkip = true
-		for (const sel of selectors) {
-			if (sandbox.querySelectorAll(sel).length > 0) {
-				canSkip = false
-				break;
-			}
-		}
-		if (canSkip) return;
-
-		for (const sel of selectors) {
-			sandbox.querySelectorAll(sel).forEach(m => {
-				m.replaceWith(...Array.from(m.childNodes))
-			})
-		}
-		const replacement = sandbox.body.innerHTML
-		editor.replaceSelection(replacement);
-		if (!editor.hasFocus()) editor.focus();
-		if (preserveSelection) editor.setSelection(oldHead, editor.getCursor('head'));
-	}
 	
 	eraseHighlight(editor: Editor) {
-		this.clearSelectionOfSelectors(editor, [...this.settings.cleanSelectors, 'mark'])
+		clearSelectionOfSelectors(editor, [...this.settings.cleanSelectors, 'mark'])
 	};
 
 	createPrefix(elem: string, key: string, mode: string, style: string) {
@@ -116,7 +86,7 @@ export default class Painter extends Plugin {
 	applyCommand(command: CommandPlot, editor: EnhancedEditor) {
 		const prefix = command.prefix;
 		const suffix = command.suffix || prefix;
-		if (this.settings.overwriteMarks) this.clearSelectionOfSelectors(editor, ['mark'], true);
+		if (this.settings.overwriteMarks) clearSelectionOfSelectors(editor, ['mark'], true);
 
 		const transformer = new TextTransformer(editor)
 		transformer.trimSelection(prefix, suffix)
