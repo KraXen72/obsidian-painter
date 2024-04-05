@@ -1,3 +1,10 @@
+// MIT LICENSE
+// Copyright (c) 2022 Christopher Grieser and contributors
+// Copyright (c) 2024-Present KraXen72
+
+// originally written by Chris Grieser for Smarter-markdown hotkeys
+// https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys
+
 import type { EnhancedEditor } from "./settings/settings-types";
 import type { EditorPosition, EditorSelection } from "obsidian";
 import { isURL } from "./utils";
@@ -8,7 +15,7 @@ const nudgeDefaults: nudgeOpts = { ch: 0, ln: 0, cursor: 'to' } as const
 interface wrapOpts { expand?: boolean, moveCursorToEnd?: boolean }
 const wrapDefaults: wrapOpts = { expand: true, moveCursorToEnd: false }
 
-export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults ) {
+export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults) {
 	const opts2 = Object.assign(nudgeDefaults, opts)
 	const prevPos = editor.getCursor(opts2.cursor)
 	prevPos.ch += opts2.ch
@@ -16,26 +23,11 @@ export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefau
 	editor.setCursor(prevPos)
 }
 
-// credit for original code: https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys (modified)
-// i will probably clean this up later since i don't even need so much functionality
-
-// for now i only use this when nothing is selected, since people likely want to highlight a certain part of a word
-// instead of "smart" highlighting the whole word.
-
 const TRIMBEFORE = ["\"", "(", "[", "###### ", "##### ", "#### ", "### ", "## ", "# ", "- [ ] ", "- [x] ", "- ", ">", " ", "\n", "\t"];
 
-// TODO cleanup
-
-const TRIMAFTER = [
-	"\"",
-	")",
-	"](", // to not break markdown links
-	"::", // preseve dataview inline fields
-	"]",
-	"\n",
-	"\t",
-	" "
-];
+// ]( to not break markdown links
+// :: preseve dataview inline fields
+const TRIMAFTER = ["\"", ")", "](", "::", "]", "\n", "\t", " "];
 
 const EXPANDWHENOUTSIDE = [
 	["#", ""],
@@ -77,19 +69,19 @@ export default class TextTransformer {
 		if (offset > this.noteLength()) offset = this.noteLength();
 		return this.editor.offsetToPos(offset);
 	};
-	isOutsideSel(bef:string, aft:string) {
+	isOutsideSelection(before: string, after: string) {
 		const so = this.startOffset();
 		const eo = this.endOffset();
 
-		if (so - bef.length < 0) return false; // beginning of the document
-		if (eo - aft.length > this.noteLength()) return false; // end of the document
+		if (so - before.length < 0) return false; // beginning of the document
+		if (eo - after.length > this.noteLength()) return false; // end of the document
 
-		const charsBefore = this.editor.getRange(this.offToPos(so - bef.length), this.offToPos(so));
-		const charsAfter = this.editor.getRange(this.offToPos(eo), this.offToPos(eo + aft.length));
-		return charsBefore === bef && charsAfter === aft;
+		const charsBefore = this.editor.getRange(this.offToPos(so - before.length), this.offToPos(so));
+		const charsAfter = this.editor.getRange(this.offToPos(eo), this.offToPos(eo + after.length));
+		return charsBefore === before && charsAfter === after;
 	}
 	isMultiLineMarkup(frontMarkup: string) { return ["`", "%%", "<!--", "$"].includes(frontMarkup) }
-	markupOutsideSel(frontMarkup: string, endMarkup: string) { return this.isOutsideSel(frontMarkup, endMarkup) }
+	markupOutsideSel(frontMarkup: string, endMarkup: string) { return this.isOutsideSelection(frontMarkup, endMarkup) }
 	markupOutsideMultiline(frontMarkup: string, endMarkup: string, anchor: EditorPosition, head: EditorPosition) {
 		if (anchor.line === 0) return false;
 		if (head.line === this.editor.lastLine()) return false;
@@ -127,7 +119,7 @@ export default class TextTransformer {
 			// TODO: update for mobile https://github.com/obsidianmd/obsidian-releases/pull/712#issuecomment-1004417481
 			if (this.editor.cm instanceof window.CodeMirror) return this.editor.cm.findWordAt(ep); // CM5
 
-			const word = this.editor.cm.state.wordAt(this.editor.posToOffset (ep)); // CM6
+			const word = this.editor.cm.state.wordAt(this.editor.posToOffset(ep)); // CM6
 			if (!word) return { anchor: ep, head: ep }; // for when there is no word close by
 
 			startPos = this.offToPos(word.from);
@@ -142,27 +134,25 @@ export default class TextTransformer {
 
 			// @ts-ignore
 			while (!/\s/.test(charBefore) && !startReached) {
-				charBefore = this.editor.getRange(this.offToPos(so - (i+1)), this.offToPos(so - i));
+				charBefore = this.editor.getRange(this.offToPos(so - (i + 1)), this.offToPos(so - i));
 				i++;
 				if (so - (i - 1) === 0) startReached = true;
 			}
 
 			// @ts-ignore
 			while (!/\s/.test(charAfter) && !endReached) {
-				charAfter = this.editor.getRange(this.offToPos(so + j), this.offToPos(so + j+1));
+				charAfter = this.editor.getRange(this.offToPos(so + j), this.offToPos(so + j + 1));
 				j++;
-				if (so+(j-1) === this.noteLength()) endReached = true;
+				if (so + (j - 1) === this.noteLength()) endReached = true;
 			}
 
-			startPos = this.offToPos(so - (i-1));
-			endPos = this.offToPos(so + (j-1));
+			startPos = this.offToPos(so - (i - 1));
+			endPos = this.offToPos(so + (j - 1));
 		}
 
 		return { anchor: startPos, head: endPos };
 	}
-	/**
-	 * afaik removes whitespace at the start & end of selection
-	 */
+	/** shrinks selection to not include leading & ending whitespace */
 	trimSelection(frontMarkup: string, endMarkup: string) {
 		let trimAfter = TRIMAFTER;
 		let trimBefore = TRIMBEFORE;
@@ -216,12 +206,12 @@ export default class TextTransformer {
 	}
 
 	/**
-	 * expands the selection, and then reverts it?
+	 * expands & trims the selection
 	 * @param frontMarkup prefix
 	 * @param endMarkup suffix
-	 * @param pure set this to false if you are using expandSelection internally in TextExtractor?
+	 * @param returnModifiedSelection set this to false if you are using expandSelection internally in TextExtractor?
 	 */
-	expandSelection(frontMarkup: string, endMarkup: string, pure = true) {
+	expandSelection(frontMarkup: string, endMarkup: string, returnModifiedSelection = true) {
 		this.trimSelection(frontMarkup, endMarkup);
 
 		// expand to word
@@ -232,7 +222,7 @@ export default class TextTransformer {
 		let lastWordRange = this.textUnderCursor(frontMarkup, endMarkup, preSelExpHead) as CodeMirror.Range;
 
 		// Chinese Word Delimiter Fix https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/pull/30
-		if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0 ) {
+		if (!posEqual(preSelExpAnchor, preSelExpHead) && preSelExpHead.ch > 0) {
 			const lastWordRangeInner = this.textUnderCursor(frontMarkup, endMarkup, {
 				...preSelExpHead,
 				ch: preSelExpHead.ch - 1,
@@ -243,7 +233,6 @@ export default class TextTransformer {
 		}
 
 		this.editor.setSelection(firstWordRange.anchor, lastWordRange.head);
-		if (pure) return { anchor: firstWordRange.anchor, head: lastWordRange.head };
 		// console.log("after expandSelection", this.editor.getSelection());
 		this.trimSelection(frontMarkup, endMarkup);
 
@@ -253,14 +242,16 @@ export default class TextTransformer {
 			if (pair[0] === frontMarkup || pair[1] === endMarkup) return; // allow undoing of the command creating the syntax
 			const trimLastSpace = Boolean(pair[2]);
 
-			if (this.isOutsideSel(pair[0], pair[1])) {
+			if (this.isOutsideSelection(pair[0], pair[1])) {
 				firstWordRange.anchor.ch -= pair[0].length;
 				lastWordRange.head.ch += pair[1].length;
 				if (trimLastSpace) lastWordRange.head.ch--; // to avoid conflicts between trimming and expansion
 				this.editor.setSelection(firstWordRange.anchor, lastWordRange.head);
 			}
 		}
-		return { anchor: preSelExpAnchor, head: preSelExpHead };
+		return returnModifiedSelection
+			? { anchor: firstWordRange.anchor, head: lastWordRange.head }
+			: { anchor: preSelExpAnchor, head: preSelExpHead }
 	}
 	recalibratePos(contentChangeList: contentChange[], pos: EditorPosition) {
 		for (const change of contentChangeList) {
@@ -268,16 +259,29 @@ export default class TextTransformer {
 		}
 		return pos;
 	}
+	async insertURLtoMDLink(frontMarkup: string, endMarkup: string) {
+		const clipboardText = (await navigator.clipboard.readText()).trim();
+
+		let frontMarkup_ = frontMarkup;
+		let endMarkup_ = endMarkup;
+		if (isURL(clipboardText)) {
+			endMarkup_ = "](" + clipboardText + ")";
+			const urlExtension = clipboardText.split(".").pop();
+			if (urlExtension && IMAGEEXTENSIONS.includes(urlExtension)) frontMarkup_ = "![";
+		}
+		return [frontMarkup_, endMarkup_];
+	}
+
 	async wrapSelection(frontMarkup: string, endMarkup: string, opts: wrapOpts) {
 		const opts2 = Object.assign(wrapDefaults, opts)
 		const applyMarkup = (preAnchor: EditorPosition, preHead: EditorPosition, lineMode: string, cleanupSel = true) => {
 			let selectedText = this.editor.getSelection();
 			const so = this.startOffset();
 			let eo = this.endOffset();
-	
+
 			// abort if empty line & multi, since no markup on empty line in between desired
 			if (this.noSel() && lineMode === "multi") return;
-	
+
 			// Do Markup
 			if (!this.markupOutsideSel(frontMarkup, endMarkup)) {
 				// insert extra space for comments
@@ -289,7 +293,7 @@ export default class TextTransformer {
 					suf_len++;
 				}
 				this.editor.replaceSelection(frontMarkup + selectedText + endMarkup);
-	
+
 				contentChangeList.push(
 					{ line: preAnchor.line, shift: pre_len },
 					{ line: preHead.line, shift: suf_len }
@@ -297,12 +301,12 @@ export default class TextTransformer {
 				preAnchor.ch += pre_len;
 				preHead.ch += pre_len;
 			}
-	
+
 			// Undo Markup (outside selection, inside not necessary as trimmed already)
 			if (this.markupOutsideSel(frontMarkup, endMarkup)) {
 				this.editor.setSelection(this.offToPos(so - pre_len), this.offToPos(eo + suf_len));
 				this.editor.replaceSelection(selectedText);
-	
+
 				contentChangeList.push(
 					{ line: preAnchor.line, shift: -pre_len },
 					{ line: preHead.line, shift: -suf_len }
@@ -310,7 +314,7 @@ export default class TextTransformer {
 				preAnchor.ch -= pre_len;
 				preHead.ch -= pre_len;
 			}
-	
+
 			if (lineMode === "single") {
 				if (opts2.moveCursorToEnd) {
 					nudgeCursor(this.editor, { ch: 1 })
@@ -325,7 +329,7 @@ export default class TextTransformer {
 			selAnchor.ch = 0;
 			const selHead = this.editor.getCursor("to");
 			selHead.ch = this.editor.getLine(selHead.line).length;
-	
+
 			if (frontMarkup === "`") { // switch to fenced code instead of inline code
 				frontMarkup = "```";
 				endMarkup = "```";
@@ -337,7 +341,7 @@ export default class TextTransformer {
 				suf_len = 2;
 				pre_len = 2;
 			}
-	
+
 			// do Markup
 			if (!this.markupOutsideMultiline(selAnchor, selHead)) {
 				this.editor.setSelection(selAnchor);
@@ -345,7 +349,7 @@ export default class TextTransformer {
 				selHead.line++; // extra line to account for shift from inserting frontMarkup
 				this.editor.setSelection(selHead);
 				this.editor.replaceSelection("\n" + endMarkup);
-	
+
 				// when fenced code, position cursor for language definition
 				if (frontMarkup === "```") {
 					const languageDefPos = selAnchor;
@@ -353,30 +357,14 @@ export default class TextTransformer {
 					this.editor.setSelection(languageDefPos);
 				}
 			}
-	
+
 			// undo Block Markup
 			if (this.markupOutsideMultiline(selAnchor, selHead)) {
 				this.deleteLine(selAnchor.line - 1);
 				this.deleteLine(selHead.line); // not "+1" due to shift from previous line deletion
 			}
 		}
-	
-		async function insertURLtoMDLink() {
-			const cbText = (await navigator.clipboard.readText()).trim();
-	
-			let frontMarkup_ = frontMarkup;
-			let endMarkup_ = endMarkup;
-			if (isURL(cbText)) {
-				endMarkup_ = "](" + cbText + ")";
-				const urlExtension = cbText.split(".").pop();
-				if (urlExtension && IMAGEEXTENSIONS.includes(urlExtension)) frontMarkup_ = "![";
-			}
-			return [frontMarkup_, endMarkup_];
-		}
-	
-		// MAIN
-		// console.log("painter: text-transform (smarter-md-hotkeys) triggered");
-	
+
 		// does not have to occur in multi-cursor loop since it already works
 		// on every cursor
 		if (frontMarkup === "new-line") {
@@ -384,36 +372,36 @@ export default class TextTransformer {
 			editor.newlineOnly();
 			return;
 		}
-	
+
 		// eslint-disable-next-line require-atomic-updates
-		if (endMarkup === "]()") [frontMarkup, endMarkup] = await insertURLtoMDLink();
+		if (endMarkup === "]()") [frontMarkup, endMarkup] = await this.insertURLtoMDLink(frontMarkup, endMarkup);
 		let pre_len = frontMarkup.length;
 		let suf_len = endMarkup.length;
-	
+
 		// saves the amount of position shift for each line
 		// used to calculate correct positions for multi-cursor
 		const contentChangeList: contentChange[] = [];
 		const allCursors = this.editor?.listSelections();
-	
+
 		// sets markup for each cursor/selection
 		for (const sel of allCursors) {
 			// account for shifts in Editor Positions due to applying markup to previous cursors
 			sel.anchor = this.recalibratePos(contentChangeList, sel.anchor);
 			sel.head = this.recalibratePos(contentChangeList, sel.head);
 			this.editor.setSelection(sel.anchor, sel.head);
-	
+
 			// prevent things like triple-click selection from triggering multi-line
 			this.trimSelection(frontMarkup, endMarkup);
-	
+
 			// run special cases instead
 			if (!this.multiLineSel()) { // wrap single line selection
-				const { anchor: preSelExpAnchor, head: preSelExpHead } = opts2.expand 
+				const { anchor: preSelExpAnchor, head: preSelExpHead } = opts2.expand
 					? this.expandSelection(frontMarkup, endMarkup, false)!
 					: this.getSel();
 				applyMarkup(preSelExpAnchor, preSelExpHead, "single");
-			}	else if (this.multiLineSel() && this.isMultiLineMarkup(frontMarkup)) { // Wrap multi-line selection
+			} else if (this.multiLineSel() && this.isMultiLineMarkup(frontMarkup)) { // Wrap multi-line selection
 				wrapMultiLine();
-			}	else if (this.multiLineSel() && !this.isMultiLineMarkup(frontMarkup)) { // Wrap *each* line of multi-line selection
+			} else if (this.multiLineSel() && !this.isMultiLineMarkup(frontMarkup)) { // Wrap *each* line of multi-line selection
 				let pointerOff = this.startOffset();
 				const lines = this.editor.getSelection().split("\n");
 				// get offsets for each line and apply markup to each
@@ -422,7 +410,7 @@ export default class TextTransformer {
 					const { anchor: preSelExpAnchor, head: preSelExpHead } = opts2.expand
 						? this.expandSelection(frontMarkup, endMarkup, false)!
 						: this.getSel();
-	
+
 					// Move Pointer to next line
 					pointerOff += line.length + 1; // +1 to account for line break
 					if (this.markupOutsideSel(frontMarkup, endMarkup)) {
@@ -430,11 +418,11 @@ export default class TextTransformer {
 					} else {
 						pointerOff += pre_len + suf_len; // account for added markup
 					};
-	
+
 					applyMarkup(preSelExpAnchor, preSelExpHead, "multi");
 				}
 			}
 		}
-	
+
 	}
 }
