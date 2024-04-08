@@ -23,11 +23,9 @@ export default class Painter extends Plugin {
 	editor: EnhancedEditor;
 	manifest: PluginManifest;
 	settings: HighlightrSettings;
-	parser: DOMParser
 
 	async onload() {
 		console.log(`Painter v${this.manifest.version} loaded`);
-		this.parser = new DOMParser();
 
 		await this.loadSettings();
 

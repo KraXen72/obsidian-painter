@@ -15,6 +15,8 @@ const nudgeDefaults: nudgeOpts = { ch: 0, ln: 0, cursor: 'to' } as const
 interface wrapOpts { expand?: boolean, moveCursorToEnd?: boolean }
 const wrapDefaults: wrapOpts = { expand: true, moveCursorToEnd: false }
 
+const htmlParser = new DOMParser();
+
 export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefaults) {
 	const opts2 = Object.assign(nudgeDefaults, opts)
 	const prevPos = editor.getCursor(opts2.cursor)
@@ -30,7 +32,7 @@ export function nudgeCursor(editor: EnhancedEditor, opts: nudgeOpts = nudgeDefau
 export function clearSelectionOfSelectors(editor: Editor, selectors: string[], preserveSelection = false) {
 	const oldHead = editor.getCursor('head')
 	const currentStr = editor.getSelection();
-	const sandbox: Document = this.parser.parseFromString(currentStr, 'text/html')
+	const sandbox: Document = htmlParser.parseFromString(currentStr, 'text/html')
 
 	// this function sometimes introduces some wierdness when trying to clean a selection it doesen't need to
 	// better to skip cleaning entirely if unneeded
