@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-painter",
 	"name": "Painter",
-	"version": "0.2.0",
+	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "Paint text different colors",
 	"author": "KraXen72 and Chetachi Ezikeuzor",
