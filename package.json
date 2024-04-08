@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-painter",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Paint text different colors",
 	"main": "main.js",
 	"scripts": {
