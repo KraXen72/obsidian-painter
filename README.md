@@ -39,6 +39,7 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
   - `pickr` - Replaced with obsidian's native color picker & an alpha slider
 - Renamed command ids for consistency
 - Rewrote basically the entire plugin lol
+- added `"use strict"` to minified code to improve performance
 
 ## Support plugin development
 If you find this Plugin helpful, consider it's further development or just say a small thank you  

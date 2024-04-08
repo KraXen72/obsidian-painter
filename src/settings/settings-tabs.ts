@@ -18,6 +18,7 @@ import Sortable from 'sortablejs';
 export class PainterSettingTab extends PluginSettingTab {
 	plugin: Painter;
 	appendMethod: string;
+	topScroll: number | null;
 
 	constructor(app: App, plugin: Painter) {
 		super(app, plugin);
@@ -67,7 +68,6 @@ export class PainterSettingTab extends PluginSettingTab {
 							dispatchEvent(new Event("painter:refreshstyles"));
 						}, 100);
 						this.plugin.saveSettings();
-						this.display();
 					});
 			});
 
@@ -243,14 +243,12 @@ export class PainterSettingTab extends PluginSettingTab {
 				if (!colorName) { new Notice("Painter: Color name missing"); return; }
 				if (!colorValue) { new Notice("Painter: HEX code missing"); return; }
 				if (!colorAlphaInput) { new Notice("Painter: Alpha value missing"); return; }
-				if (this.plugin.settings.highlighterOrder.includes(colorName)) {
-					new Notice(`Painter: Color '${colorName}' already exists`);
-					return;
+				if (!this.plugin.settings.highlighterOrder.includes(colorName)) {
+					this.plugin.settings.highlighterOrder.push(colorName);
 				}
-
-				this.plugin.settings.highlighterOrder.push(colorName);
 				this.plugin.settings.highlighters[colorName] = combinedColor();
 				await this.plugin.saveSettings();
+				this.topScroll = containerEl.scrollTop
 				this.display();
 
 				dispatchEvent(new Event("painter:refreshstyles"));
@@ -303,6 +301,7 @@ export class PainterSettingTab extends PluginSettingTab {
 								dispatchEvent(new Event("painter:refreshstyles"));
 							}, 100);
 							await this.plugin.saveSettings();
+							this.topScroll = containerEl.scrollTop
 							this.display();
 						});
 				})
@@ -323,5 +322,11 @@ export class PainterSettingTab extends PluginSettingTab {
 				this.plugin.saveSettings();
 			},
 		})
+
+		if (this.topScroll) containerEl.scrollTo({ top: this.topScroll })
+	}
+
+	hide() {
+		this.topScroll = null
 	}
 }
