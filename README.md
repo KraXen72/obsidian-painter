@@ -44,22 +44,20 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 ## Support plugin development
 If you find this Plugin helpful, consider it's further development or just say a small thank you  
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/KraXen72) [![kofi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/kraxen72)
+
+## Migrating from highlightr
+If you've previously used the highlightr plugin, you can migrate your settings by copying:
+- `<vault>/.obsidian/plugins/highlightr-plugin/data.json` =>
+- `<vault>/.obsidian/plugins/obsidian-painter/data.json`
+  
+Then, disable & enable the Painter plugin.
+Make sure to check settings have sucessfully migrated, and if they have, feel free to uninstall highlightr.
   
 ## Credits
 - [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license. support: [ko-fi](https://ko-fi.com/chetachi)
   - for most of the original source code (most has been rewritten)
 - [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys) released under [MIT](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys/blob/master/LICENSE) license. support: [ko-fi](https://ko-fi.com/pseudometa)
   - for smart text modification logic
-
-## TODO before release on Plugin Store
-- [ ] two way binding for color inputs (editing input box updates color picker/slider)
-- [x] fullly replace remaining innerHTML calls
-  - don't worry, nothing sketchy is going on but it's a plugin guideline to not use `.innerHTML`. 
-  - if unsure, you can check the source code for `innerHTML` usage
-- [ ] allow editing of colors
-- [ ] auto-generated classnames (maybe)
-- [ ] replace remaining mentions of highlightr in code except for injected classnames
-  - to be compatible with previously-highlighted notes by highlightr
   
 ## What this plugin doesen't try to be
 This plugin is for coloring/highlighting text.  
