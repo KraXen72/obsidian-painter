@@ -28,14 +28,6 @@ export class PainterSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h1", { text: "Painter" });
-
-		const authorP = containerEl.createEl('p')
-		authorP.createEl("span", { text: "Initially created by " })
-		authorP.createEl('a', { text: 'Chetachi 👩🏽‍💻', href: 'https://github.com/chetachiezikeuzor', })
-		authorP.createEl('span', { text: '. Rewritten & extended by ' })
-		authorP.createEl('a', { text: 'KraXen72 🧉', href: 'https://github.com/KraXen72' })
-		authorP.createEl('span', { text: '.' })
 
 		new Setting(containerEl)
 			.setName('Menu Mode')
