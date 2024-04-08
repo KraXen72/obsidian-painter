@@ -48,7 +48,7 @@ If you find this Plugin helpful, consider it's further development or just say a
 ## Migrating from highlightr
 If you've previously used the highlightr plugin, you can migrate your settings by copying:
 - `<vault>/.obsidian/plugins/highlightr-plugin/data.json` =>
-- `<vault>/.obsidian/plugins/obsidian-painter/data.json`
+- `<vault>/.obsidian/plugins/painter/data.json`
   
 Then, disable & enable the Painter plugin.
 Make sure to check settings have sucessfully migrated, and if they have, feel free to uninstall highlightr.

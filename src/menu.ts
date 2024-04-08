@@ -29,7 +29,7 @@ const highlighterMenu = (
 		menu.addItem(item => {
 			item.setTitle(color);
 			item.setIcon(`painter-icon-${lowerCaseColor}`)
-			item.onClick(() => app.commands.executeCommandById(`obsidian-painter:paint-${lowerCaseColor}`));
+			item.onClick(() => app.commands.executeCommandById(`painter:paint-${lowerCaseColor}`));
 		});
 	});
 	if (editor.getSelection()) {
