@@ -30,7 +30,7 @@ export class PainterSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Menu Mode')
+			.setName('Menu mode')
 			.setDesc(`Set the menu style - 'minimal' shows icons only in one line`)
 			.addDropdown(dropdown => {
 				dropdown.addOptions({ minimal: 'minimal', normal: 'normal' });
@@ -64,10 +64,10 @@ export class PainterSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName('Additional CSS Selectors to clear')
+			.setName('Additional CSS selectors to clear')
 			.setDesc(`The "Painter: Clear" command clears all "mark" elements. However, you might wish to remove other elements as well. Add CSS Selectors to be cleaned here (one per line)`)
 			.addTextArea(ta => {
-				ta.inputEl.style.resize = 'vertical'
+				ta.inputEl.addClass('painter-plugin-settings-textarea')
 				ta.setValue(this.plugin.settings.cleanSelectors.join("\n"))
 				ta.onChange(val => {
 					const selectors = val.split("\n").map(i => i.trim()).filter(i => i !== "")

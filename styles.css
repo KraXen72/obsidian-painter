@@ -344,3 +344,6 @@ button:not(.mod-cta):not(.mod-warning).painter-plugin-settings-button:is(
 	border-top: none;
 	user-select: text;
 }
+.painter-plugin-settings-textarea {
+	resize: vertical;
+}
