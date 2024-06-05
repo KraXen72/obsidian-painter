@@ -1,6 +1,8 @@
 # Painter
 > Paint text different colors  
   
+![Obsidian plugin](https://img.shields.io/endpoint?url=https%3A%2F%2Fscambier.xyz%2Fobsidian-endpoints%2Fpainter.json) 
+  
 ![minimal-menu](./screens/minimal-menu.png)  
 ![normal-menu](./screens/menu-normal.png)  
 ![commands](./screens/commands.png)
