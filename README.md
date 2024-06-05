@@ -81,7 +81,7 @@ Some people might prefer this method, so i kept it in.
 Feel free to experiment with them to find the one best for your use-case.
 
 ## i can't see the color previews in context menu
-![alt text](./srceens/image.png)  
+![menu](./srceens/menu-native.png)  
 If your context menu looks like this and not like the one in the screenshots above, in Obsidian settings, `Appearance` > `Advanced`, turn off `Native menus`.
   
 ## Credits
