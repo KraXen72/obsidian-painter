@@ -31,7 +31,7 @@ The aim of this plugin is to support most features of [Highlightr-Plugin](https:
 - Highlightr styles now use css variables instead of hardcoded values
   
 ### Other
-- Cleaned up file structure & move to esbuild instead of rollupk
+- Cleaned up file structure & move to esbuild instead of rollup
 - Removed a bunch of unnecessary code & styles, overall cleanup & rewrite
   - Removed a bunch of custom icons in favor of normal obsidian icons	
   - Removed `wait()` calls (promise + settimeout)	
@@ -52,6 +52,31 @@ If you've previously used the highlightr plugin, you can migrate your settings b
   
 Then, disable & enable the Painter plugin.
 Make sure to check settings have sucessfully migrated, and if they have, feel free to uninstall highlightr.
+
+## css-classes vs. inline-styles: which should you choose?
+The settings allow you to select between two highlight styles, `css-classes` and `inline-styles`. 
+Here is their comparison:  
+### css-classes
+- Uses `<mark class="hltr-colorname">content</mark>`
+- Painter plugin injects a stylesheet which colors these
+- 👍 More flexible:
+  - Re-defining a color with the same name will update existing highlights
+  - Changing the highlight style will update all existing highlights as well
+  
+Unless you plan on frequently exporting your notes outside of obsidian, use Obsidian Publish or edit notes in externally, pick this option. It's much more flexible.
+Even if you plan to someday export your notes, you can always write a simple script to convert the `<mark>` elements to whatever you want, or add a custom stylesheet that will add back their coloring.  
+In a future plugin release, there will likely be an option to generate this stylesheet for usage outside of obsidian.
+
+### inline-styles
+- uses `<mark style="color:#hex">content</mark>` or `<mark style="background-color:#hex">content</mark>`
+- still dependent on obsidian/external stylesheets for any other styling, like rounded corners, padding, etc.
+- bakes the color in the highlight: if you change a color in settings, previous highlights will stay the same
+- changing highlight style later will not fully affect existing highlights
+  - `background-color` highlights will not turn into `color` (`text-color` in settings) and vice versa.
+- slightly easier to use outside of obsidian
+  
+Some people might prefer this method, so i kept it in.  
+Feel free to experiment with them to find the one best for your use-case.
   
 ## Credits
 - [Highlightr-Plugin](https://github.com/chetachiezikeuzor/Highlightr-Plugin) released under [MPLv2](./LICENSE) license. support: [ko-fi](https://ko-fi.com/chetachi)
