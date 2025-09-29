@@ -1,7 +1,13 @@
 # Painter
 ![Obsidian plugin](https://img.shields.io/endpoint?url=https%3A%2F%2Fscambier.xyz%2Fobsidian-endpoints%2Fpainter.json) 
   
-> Paint text different colors  
+> Paint text different colors
+  
+> [!NOTE]
+> This plugin is looking for maintainers!  
+> I currently don't have time to fix issues or implement new features, and I don't use the plugin anymore.  
+> If you'd be interested in maintaining it, open an issue!  
+> Thanks!  
   
 ![minimal-menu](./screens/minimal-menu.png)  
 ![normal-menu](./screens/menu-normal.png)  
@@ -94,4 +100,5 @@ If your context menu looks like this and not like the one in the screenshots abo
 This plugin is for coloring/highlighting text.  
 It doesen't try to provide a comprehensive formatting toolbar/experience. 
 Out of scope: [Modal highlighting (highlighting brushes)](https://github.com/chetachiezikeuzor/Highlightr-Plugin/issues/82)  
+
 Use this: [obsidian-editing-toolbar](https://github.com/PKM-er/obsidian-editing-toolbar)  
