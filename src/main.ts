@@ -60,13 +60,7 @@ export default class Painter extends Plugin {
 	}
 
 	reloadStyles(settings: HighlightrSettings) {
-		let currentSheet = document.querySelector("style#highlightr-styles");
-		if (currentSheet) {
-			currentSheet.remove();
-			createStyles(settings);
-		} else {
-			createStyles(settings);
-		}
+		createStyles(settings);
 	}
 	
 	eraseHighlight(editor: Editor) {
