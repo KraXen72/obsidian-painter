@@ -1,13 +1,12 @@
 # Painter
+> [!NOTE]
+> This plugin is no longer maintained -- Obsidian [supports changing highlight colors natively since 1.14](https://obsidian.md/changelog/2026-10-05-desktop-v1.14.4/)  
+> Thank you to everyone who used this plugin!  
+> \- kraxen  
+
 ![Obsidian plugin](https://img.shields.io/endpoint?url=https%3A%2F%2Fscambier.xyz%2Fobsidian-endpoints%2Fpainter.json) 
   
 > Paint text different colors
-  
-> [!NOTE]
-> This plugin is looking for maintainers!  
-> I currently don't have time to fix issues or implement new features, and I don't use the plugin anymore.  
-> If you'd be interested in maintaining it, open an issue!  
-> Thanks!  
   
 ![minimal-menu](./screens/minimal-menu.png)  
 ![normal-menu](./screens/menu-normal.png)  
